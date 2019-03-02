@@ -1,0 +1,36 @@
+{
+	"ad-providers": ["seloger"],
+    "cities":
+    [
+        ["Nanterre", 92000, 920050],
+        ["Rueil-Malmaison", 92500, 920063]
+    ],
+    "price": [200, 900],
+    "surface": [30, 70],
+    "rooms": [2, 5],
+    "bedrooms": [1, 2],
+
+    "leboncoin": {
+      "c": 10,
+      "f": "p",
+      "ret": [1, 2],
+      "q": "terasse"
+    },
+
+    "seloger": {
+      "idtt": 1,
+      "idtypebien": "1,2",
+      "getDtCreationMax": 1
+    },
+    
+    "pap": {
+        "recherche[produit]": "location",
+        "recherche[typesbien][]": "appartement",
+        "order": "date-desc"
+    },
+    
+    "logic-immo": {
+        "domain": "rentals",
+        "order": "date-desc"
+    }
+}
