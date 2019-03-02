@@ -1,69 +1,91 @@
+from datetime import datetime
+
+from models import quick_alert_db
+
 import requests
 import xml.etree.ElementTree as ET
-from models import Annonce
-from datetime import datetime
-'''module to retrieve seloger.com ads'''
+from peewee import (
+    CharField,
+    TextField,
+    BlobField,
+    Model
+)
 
-AD_REQUIRED_FIELDS = [
-    "idTiers",
-    "idAnnonce",
-    "idAgence",
-    "idPublication",
-    "idTypeTransaction",
-    "idTypeBien",
-    "dtFraicheur",
-    "dtCreation",
-    "titre",
-    "libelle",
-    "descriptif",
-    "prix",
-    "prixUnite",
-    "prixMention",
-    "nbPiece",
-    "nbChambre",
-    "surface",
-    "surfaceUnite",
-    "idPays",
-    "pays",
-    "cp",
-    "codeInsee",
-    "ville",
-    "logoTnyUrl",
-    "logoBigUrl",
-    "firstThumb",
-    "permaLien",
-    "latitude",
-    "longitude",
-    "llPrecision",
-    "typeDPE",
-    "consoEnergie",
-    "bilanConsoEnergie",
-    "emissionGES",
-    "bilanEmissionGES",
-    "siLotNeuf",
-    "siMandatExclusif",
-    "siMandatStar",
-    "contact/siAudiotel",
-    "contact/idPublication",
-    "contact/nom",
-    "contact/rcsSiren",
-    "contact/rcsNic",
-    "nbsallesdebain",
-    "nbsalleseau",
-    "nbtoilettes",
-    "sisejour",
-    "surfsejour",
-    "anneeconstruct",
-    "nbparkings",
-    "nbboxes",
-    "siterrasse",
-    "nbterrasses",
-    "sipiscine",
-    "proximite",
-]
+AD_REQUIRED_FIELDS = {	
+    "idTiers": CharField(),
+    "idAnnonce": CharField(),
+    "idAgence": CharField(),
+    "idPublication": CharField(),
+    "idTypeTransaction": CharField(),
+    "idTypeBien": CharField(),
+    "dtFraicheur": CharField(),
+    "dtCreation": CharField(),
+    "titre": CharField(),
+    "libelle": CharField(),
+    "descriptif": TextField(),
+    "prix": CharField(),
+    "prixUnite": CharField(),
+    "prixMention": CharField(),
+    "nbPiece": CharField(),
+    "nbChambre": CharField(),
+    "surface": CharField(),
+    "surfaceUnite": CharField(),
+    "idPays": CharField(),
+    "pays": CharField(),
+    "cp": CharField(),
+    "codeInsee": CharField(),
+    "ville": CharField(),
+    "logoTnyUrl": CharField(null=True, default=""),
+    "logoBigUrl": CharField(null=True, default=""),
+    "firstThumb": CharField(),
+    "permaLien": CharField(),
+    "latitude": CharField(),
+    "longitude": CharField(),
+    "llPrecision": CharField(),
+    "typeDPE": CharField(),
+    "consoEnergie": CharField(),
+    "bilanConsoEnergie": CharField(),
+    "emissionGES": CharField(),
+    "bilanEmissionGES": CharField(),
+    "siLotNeuf": CharField(),
+    "siMandatExclusif": CharField(),
+    "siMandatStar": CharField(),
+    "contact/siAudiotel": CharField(null=True, default=""),
+    "contact/idPublication": CharField(null=True, default=""),
+    "contact/nom": CharField(null=True, default=""),
+    "contact/rcsSiren": CharField(null=True, default=""),
+    "contact/rcsNic": CharField(null=True, default=""),
+    "nbsallesdebain": CharField(),
+    "nbsalleseau": CharField(),
+    "nbtoilettes": CharField(),
+    "sisejour": CharField(),
+    "surfsejour": CharField(),
+    "anneeconstruct": CharField(),
+    "nbparkings": CharField(),
+    "nbboxes": CharField(),
+    "siterrasse": CharField(),
+    "nbterrasses": CharField(),
+    "sipiscine": CharField(),
+    "proximite": CharField()
+}
+
+
+class AdSeLoger(Model):
+    class Meta:
+        database = quick_alert_db
+        db_table = 'sales_sel_buffer_in'
+
+for name, typ in AD_REQUIRED_FIELDS.items():
+    AdSeLoger._meta.add_field(
+        name.replace('/', '_').lower(),
+        typ
+    )
+
+
+AdSeLoger.create_table()
 
 def search(parameters):
-    # Preparing request params
+    # preparing request params
     payload = {
         'px_loyermin': parameters['price'][0],
         'px_loyermax': parameters['price'][1],
@@ -76,7 +98,7 @@ def search(parameters):
         'ci': [int(cp[2]) for cp in parameters['cities']]
     }
 
-    # Adding seloger specific params
+    # adding seloger specific params
     payload.update(parameters['seloger'])
 
     headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
@@ -113,9 +135,16 @@ def search(parameters):
         #if created:
         #    annonce.save()
         ad_fields = {}
-
+        
         for field in AD_REQUIRED_FIELDS:
-            ad_fields[field] = adNode.findtext(field)
+            field_value = adNode.findtext(field)
+            ad_fields[field.lower()] = field_value if field_value else ""
 
+        #print("RONY {}".format(ad_fields["descriptif"]))
+        ad_fields["descriptif"] = "FUCK"
+        
+        ad_model = AdSeLoger.create(**ad_fields)
+        ad_model.save()
         print("AD: {}\n".format(ad_fields))
+        exit(0)
 
