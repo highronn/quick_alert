@@ -147,7 +147,5 @@ def search(parameters):
         
         ad_model = AdSeLoger.create(**ad_fields)
         ad_model.save()
-        print("AD: {}\n".format(ad_fields))
-
-        exit(0)
+        #print("AD: {}\n".format(ad_fields))
 
