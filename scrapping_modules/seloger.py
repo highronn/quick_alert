@@ -7,66 +7,67 @@ import xml.etree.ElementTree as ET
 from peewee import (
     CharField,
     TextField,
-    BlobField,
+    DateTimeField,
     Model
 )
 
-AD_REQUIRED_FIELDS = {	
-    "idTiers": CharField(),
-    "idAnnonce": CharField(),
-    "idAgence": CharField(),
-    "idPublication": CharField(),
-    "idTypeTransaction": CharField(),
-    "idTypeBien": CharField(),
-    "dtFraicheur": CharField(),
-    "dtCreation": CharField(),
-    "titre": CharField(),
-    "libelle": CharField(),
+AD_REQUIRED_FIELDS = {
+    #"dateinsert": DateTimeField(null=True, default=""),
+    "idTiers": CharField(null=True, default=""),
+    "idAnnonce": CharField(null=True, default=""),
+    "idAgence": CharField(null=True, default=""),
+    "idPublication": CharField(null=True, default=""),
+    "idTypeTransaction": CharField(null=True, default=""),
+    "idTypeBien": CharField(null=True, default=""),
+    "dtFraicheur": DateTimeField(null=True, default=None),
+    "dtCreation": DateTimeField(null=True, default=None),
+    "titre": CharField(null=True, default=""),
+    "libelle": CharField(null=True, default=""),
     "descriptif": TextField(),
-    "prix": CharField(),
-    "prixUnite": CharField(),
-    "prixMention": CharField(),
-    "nbPiece": CharField(),
-    "nbChambre": CharField(),
-    "surface": CharField(),
-    "surfaceUnite": CharField(),
-    "idPays": CharField(),
-    "pays": CharField(),
-    "cp": CharField(),
-    "codeInsee": CharField(),
-    "ville": CharField(),
+    "prix": CharField(null=True, default=""),
+    "prixUnite": CharField(null=True, default=""),
+    "prixMention": CharField(null=True, default=""),
+    "nbPiece": CharField(null=True, default=""),
+    "nbChambre": CharField(null=True, default=""),
+    "surface": CharField(null=True, default=""),
+    "surfaceUnite": CharField(null=True, default=""),
+    "idPays": CharField(null=True, default=""),
+    "pays": CharField(null=True, default=""),
+    "cp": CharField(null=True, default=""),
+    "codeInsee": CharField(null=True, default=""),
+    "ville": CharField(null=True, default=""),
     "logoTnyUrl": CharField(null=True, default=""),
     "logoBigUrl": CharField(null=True, default=""),
-    "firstThumb": CharField(),
-    "permaLien": CharField(),
-    "latitude": CharField(),
-    "longitude": CharField(),
-    "llPrecision": CharField(),
-    "typeDPE": CharField(),
-    "consoEnergie": CharField(),
-    "bilanConsoEnergie": CharField(),
-    "emissionGES": CharField(),
-    "bilanEmissionGES": CharField(),
-    "siLotNeuf": CharField(),
-    "siMandatExclusif": CharField(),
-    "siMandatStar": CharField(),
+    "firstThumb": CharField(null=True, default=""),
+    "permaLien": CharField(null=True, default=""),
+    "latitude": CharField(null=True, default=""),
+    "longitude": CharField(null=True, default=""),
+    "llPrecision": CharField(null=True, default=""),
+    "typeDPE": CharField(null=True, default=""),
+    "consoEnergie": CharField(null=True, default=""),
+    "bilanConsoEnergie": CharField(null=True, default=""),
+    "emissionGES": CharField(null=True, default=""),
+    "bilanEmissionGES": CharField(null=True, default=""),
+    "siLotNeuf": CharField(null=True, default=""),
+    "siMandatExclusif": CharField(null=True, default=""),
+    "siMandatStar": CharField(null=True, default=""),
     "contact/siAudiotel": CharField(null=True, default=""),
     "contact/idPublication": CharField(null=True, default=""),
     "contact/nom": CharField(null=True, default=""),
     "contact/rcsSiren": CharField(null=True, default=""),
     "contact/rcsNic": CharField(null=True, default=""),
-    "nbsallesdebain": CharField(),
-    "nbsalleseau": CharField(),
-    "nbtoilettes": CharField(),
-    "sisejour": CharField(),
-    "surfsejour": CharField(),
-    "anneeconstruct": CharField(),
-    "nbparkings": CharField(),
-    "nbboxes": CharField(),
-    "siterrasse": CharField(),
-    "nbterrasses": CharField(),
-    "sipiscine": CharField(),
-    "proximite": CharField()
+    "nbsallesdebain": CharField(null=True, default=""),
+    "nbsalleseau": CharField(null=True, default=""),
+    "nbtoilettes": CharField(null=True, default=""),
+    "sisejour": CharField(null=True, default=""),
+    "surfsejour": CharField(null=True, default=""),
+    "anneeconstruct": CharField(null=True, default=""),
+    "nbparkings": CharField(null=True, default=""),
+    "nbboxes": CharField(null=True, default=""),
+    "siterrasse": CharField(null=True, default=""),
+    "nbterrasses": CharField(null=True, default=""),
+    "sipiscine": CharField(null=True, default=""),
+    "proximite": CharField(null=True, default="")
 }
 
 
@@ -135,7 +136,8 @@ def search(parameters):
         #if created:
         #    annonce.save()
         ad_fields = {}
-        
+        #ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d')
+
         for field in AD_REQUIRED_FIELDS:
             field_value = adNode.findtext(field)
             ad_fields[field.lower()] = field_value if field_value else ""
@@ -146,5 +148,6 @@ def search(parameters):
         ad_model = AdSeLoger.create(**ad_fields)
         ad_model.save()
         print("AD: {}\n".format(ad_fields))
+
         exit(0)
 
