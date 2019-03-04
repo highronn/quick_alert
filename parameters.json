@@ -22,13 +22,13 @@
       "idtypebien": "1,2",
       "getDtCreationMax": 1
     },
-    
+
     "pap": {
         "recherche[produit]": "location",
         "recherche[typesbien][]": "appartement",
         "order": "date-desc"
     },
-    
+
     "logic-immo": {
         "domain": "rentals",
         "order": "date-desc"

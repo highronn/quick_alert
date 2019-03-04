@@ -76,14 +76,6 @@ class AdSeLoger(Model):
         database = quick_alert_db
         db_table = 'sales_sel_buffer_in'
 
-for name, typ in AD_REQUIRED_FIELDS.items():
-    AdSeLoger._meta.add_field(
-        name.replace('/', '_').lower(),
-        typ
-    )
-
-
-AdSeLoger.create_table()
 
 def search(parameters):
     # preparing request params
@@ -149,3 +141,12 @@ def search(parameters):
         ad_model.save()
         #print("AD: {}\n".format(ad_fields))
 
+
+def init_models():
+    for name, typ in AD_REQUIRED_FIELDS.items():
+        AdSeLoger._meta.add_field(
+            name.replace('/', '_').lower(),
+            typ
+        )
+
+    AdSeLoger.create_table()

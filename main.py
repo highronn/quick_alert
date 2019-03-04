@@ -30,6 +30,7 @@ with open("parameters.json", encoding='utf-8') as parameters_data:
 
 if "seloger" in parameters['ad-providers']:
     logging.info("Retrieving from seloger")
+    seloger.init_models()
     seloger.search(parameters)
 
 #if "leboncoin" in parameters['ad-providers']:
