@@ -8,11 +8,15 @@ from peewee import (
     CharField,
     TextField,
     DateTimeField,
-    Model
+    BigIntegerField,
+
+    Model,
+
+    IntegrityError
 )
 
 AD_REQUIRED_FIELDS = {
-    "idAnnonce": CharField(null=True, default=None),
+    "idAnnonce": BigIntegerField(primary_key=True, unique=True),
     "dateinsert": DateTimeField(null=False, default=datetime.now),
     "idTiers": CharField(null=True, default=None),
     "idAgence": CharField(null=True, default=None),
@@ -75,6 +79,7 @@ class AdSeLoger(Model):
     class Meta:
         database = quick_alert_db
         db_table = 'sales_sel_buffer_in'
+        primary_key = False
 
 
 def convert_api_field_to_db_col(field_name):
@@ -104,33 +109,6 @@ def search(parameters):
     xml_root = ET.fromstring(request.text)
 
     for adNode in xml_root.findall('annonces/annonce'):
-        # Seconde requête pour obtenir la description de l'annonce
-        #_payload = {'noAudiotel': 1, 'idAnnonce': adNode.findtext('idAnnonce')}
-        #_request = requests.get("http://ws.seloger.com/annonceDetail_4.0.xml", params=_payload, headers=headers)
-        #photos = list()
-        #for photo in adNode.find("photos"):
-        #    photos.append(photo.findtext("stdUrl"))
-
-        #annonce, created = Annonce.create_or_get(
-        #    id='seloger-' + adNode.find('idAnnonce').text,
-        #    site='SeLoger',
-        #    # SeLoger peut ne pas fournir de titre pour une annonce T_T
-        #    title="Appartement " + adNode.findtext('nbPiece') + " pièces" if adNode.findtext('titre') is None else adNode.findtext('titre'),
-        #    description=ET.fromstring(_request.text).findtext("descriptif"),
-        #    telephone=ET.fromstring(_request.text).findtext("contact/telephone"),
-        #    created=datetime.strptime(adNode.findtext('dtCreation'), '%Y-%m-%dT%H:%M:%S'),
-        #    price=adNode.find('prix').text,
-        #    charges=adNode.find('charges').text,
-        #    surface=adNode.find('surface').text,
-        #    rooms=adNode.find('nbPiece').text,
-        #    bedrooms=adNode.find('nbChambre').text,
-        #    city=adNode.findtext('ville'),
-        #    link=adNode.findtext('permaLien'),
-        #    picture=photos
-        #)
-
-        #if created:
-        #    annonce.save()
         ad_fields = {}
         ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -142,11 +120,12 @@ def search(parameters):
             db_col = convert_api_field_to_db_col(field)
             ad_fields[db_col] = field_value if field_value else None
 
-        ad_model = AdSeLoger.create(**ad_fields)
-        ad_model.save()
-        #print("AD: {}\n".format(ad_fields))
-        break
-
+        try:
+            ad_model = AdSeLoger.create(**ad_fields)
+            #ad_model.save()
+        except IntegrityError as error:
+            print("ERROR: " + str(error))
+        #break
 
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
