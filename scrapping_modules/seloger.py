@@ -12,62 +12,62 @@ from peewee import (
 )
 
 AD_REQUIRED_FIELDS = {
-    #"dateinsert": DateTimeField(null=True, default=""),
-    "idTiers": CharField(null=True, default=""),
-    "idAnnonce": CharField(null=True, default=""),
-    "idAgence": CharField(null=True, default=""),
-    "idPublication": CharField(null=True, default=""),
-    "idTypeTransaction": CharField(null=True, default=""),
-    "idTypeBien": CharField(null=True, default=""),
+    "idAnnonce": CharField(null=True, default=None),
+    "dateinsert": DateTimeField(null=False, default=datetime.now),
+    "idTiers": CharField(null=True, default=None),
+    "idAgence": CharField(null=True, default=None),
+    "idPublication": CharField(null=True, default=None),
+    "idTypeTransaction": CharField(null=True, default=None),
+    "idTypeBien": CharField(null=True, default=None),
     "dtFraicheur": DateTimeField(null=True, default=None),
     "dtCreation": DateTimeField(null=True, default=None),
-    "titre": CharField(null=True, default=""),
-    "libelle": CharField(null=True, default=""),
-    "descriptif": TextField(null=True, default=""),
-    "prix": CharField(null=True, default=""),
-    "prixUnite": CharField(null=True, default=""),
-    "prixMention": CharField(null=True, default=""),
-    "nbPiece": CharField(null=True, default=""),
-    "nbChambre": CharField(null=True, default=""),
-    "surface": CharField(null=True, default=""),
-    "surfaceUnite": CharField(null=True, default=""),
-    "idPays": CharField(null=True, default=""),
-    "pays": CharField(null=True, default=""),
-    "cp": CharField(null=True, default=""),
-    "codeInsee": CharField(null=True, default=""),
-    "ville": CharField(null=True, default=""),
-    "logoTnyUrl": CharField(null=True, default=""),
-    "logoBigUrl": CharField(null=True, default=""),
-    "firstThumb": CharField(null=True, default=""),
-    "permaLien": CharField(null=True, default=""),
-    "latitude": CharField(null=True, default=""),
-    "longitude": CharField(null=True, default=""),
-    "llPrecision": CharField(null=True, default=""),
-    "typeDPE": CharField(null=True, default=""),
-    "consoEnergie": CharField(null=True, default=""),
-    "bilanConsoEnergie": CharField(null=True, default=""),
-    "emissionGES": CharField(null=True, default=""),
-    "bilanEmissionGES": CharField(null=True, default=""),
-    "siLotNeuf": CharField(null=True, default=""),
-    "siMandatExclusif": CharField(null=True, default=""),
-    "siMandatStar": CharField(null=True, default=""),
-    "contact/siAudiotel": CharField(null=True, default=""),
-    "contact/idPublication": CharField(null=True, default=""),
-    "contact/nom": CharField(null=True, default=""),
-    "contact/rcsSiren": CharField(null=True, default=""),
-    "contact/rcsNic": CharField(null=True, default=""),
-    "nbsallesdebain": CharField(null=True, default=""),
-    "nbsalleseau": CharField(null=True, default=""),
-    "nbtoilettes": CharField(null=True, default=""),
-    "sisejour": CharField(null=True, default=""),
-    "surfsejour": CharField(null=True, default=""),
-    "anneeconstruct": CharField(null=True, default=""),
-    "nbparkings": CharField(null=True, default=""),
-    "nbboxes": CharField(null=True, default=""),
-    "siterrasse": CharField(null=True, default=""),
-    "nbterrasses": CharField(null=True, default=""),
-    "sipiscine": CharField(null=True, default=""),
-    "proximite": CharField(null=True, default="")
+    "titre": CharField(null=True, default=None),
+    "libelle": CharField(null=True, default=None),
+    "descriptif": TextField(null=True, default=None),
+    "prix": CharField(null=True, default=None),
+    "prixUnite": CharField(null=True, default=None),
+    "prixMention": CharField(null=True, default=None),
+    "nbPiece": CharField(null=True, default=None),
+    "nbChambre": CharField(null=True, default=None),
+    "surface": CharField(null=True, default=None),
+    "surfaceUnite": CharField(null=True, default=None),
+    "idPays": CharField(null=True, default=None),
+    "pays": CharField(null=True, default=None),
+    "cp": CharField(null=True, default=None),
+    "codeInsee": CharField(null=True, default=None),
+    "ville": CharField(null=True, default=None),
+    "logoTnyUrl": CharField(null=True, default=None),
+    "logoBigUrl": CharField(null=True, default=None),
+    "firstThumb": CharField(null=True, default=None),
+    "permaLien": CharField(null=True, default=None),
+    "latitude": CharField(null=True, default=None),
+    "longitude": CharField(null=True, default=None),
+    "llPrecision": CharField(null=True, default=None),
+    "typeDPE": CharField(null=True, default=None),
+    "consoEnergie": CharField(null=True, default=None),
+    "bilanConsoEnergie": CharField(null=True, default=None),
+    "emissionGES": CharField(null=True, default=None),
+    "bilanEmissionGES": CharField(null=True, default=None),
+    "siLotNeuf": CharField(null=True, default=None),
+    "siMandatExclusif": CharField(null=True, default=None),
+    "siMandatStar": CharField(null=True, default=None),
+    "contact/siAudiotel": CharField(null=True, default=None),
+    "contact/idPublication": CharField(null=True, default=None),
+    "contact/nom": CharField(null=True, default=None),
+    "contact/rcsSiren": CharField(null=True, default=None),
+    "contact/rcsNic": CharField(null=True, default=None),
+    "nbsallesdebain": CharField(null=True, default=None),
+    "nbsalleseau": CharField(null=True, default=None),
+    "nbtoilettes": CharField(null=True, default=None),
+    "sisejour": CharField(null=True, default=None),
+    "surfsejour": CharField(null=True, default=None),
+    "anneeconstruct": CharField(null=True, default=None),
+    "nbparkings": CharField(null=True, default=None),
+    "nbboxes": CharField(null=True, default=None),
+    "siterrasse": CharField(null=True, default=None),
+    "nbterrasses": CharField(null=True, default=None),
+    "sipiscine": CharField(null=True, default=None),
+    "proximite": CharField(null=True, default=None)
 }
 
 
@@ -132,12 +132,15 @@ def search(parameters):
         #if created:
         #    annonce.save()
         ad_fields = {}
-        #ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d')
+        ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         for field in AD_REQUIRED_FIELDS:
+            if field == "dateinsert":
+                continue
+
             field_value = adNode.findtext(field)
             db_col = convert_api_field_to_db_col(field)
-            ad_fields[db_col] = field_value if field_value else ""
+            ad_fields[db_col] = field_value if field_value else None
 
         ad_model = AdSeLoger.create(**ad_fields)
         ad_model.save()
