@@ -77,6 +77,10 @@ class AdSeLoger(Model):
         db_table = 'sales_sel_buffer_in'
 
 
+def convert_api_field_to_db_col(field_name):
+    return field_name.replace('/', '_').lower()
+
+
 def search(parameters):
     # preparing request params
     payload = {
@@ -132,10 +136,8 @@ def search(parameters):
 
         for field in AD_REQUIRED_FIELDS:
             field_value = adNode.findtext(field)
-            ad_fields[field.lower()] = field_value if field_value else ""
-
-        #print("RONY {}".format(ad_fields["descriptif"]))
-        ad_fields["descriptif"] = "FUCK"
+            db_col = convert_api_field_to_db_col(field)
+            ad_fields[db_col] = field_value if field_value else ""
 
         ad_model = AdSeLoger.create(**ad_fields)
         ad_model.save()
@@ -145,7 +147,7 @@ def search(parameters):
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdSeLoger._meta.add_field(
-            name.replace('/', '_').lower(),
+            convert_api_field_to_db_col(name),
             typ
         )
 
