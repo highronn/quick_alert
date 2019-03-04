@@ -1,11 +1,19 @@
-from peewee import *
-from playhouse.sqlite_ext import SqliteExtDatabase
+from peewee import (
+    Model,
 
-db = SqliteExtDatabase('database.sqlite')
+    MySQLDatabase,
 
-quick_alert_db = MySQLDatabase(
+    CharField,
+    IntegerField,
+    TextField,
+    DateTimeField,
+    FloatField,
+    BooleanField,
+)
+
+db = quick_alert_db = MySQLDatabase(
     'quickalert',
-    user='quickalert', password='alertquick',
+    user='quickalert', password='quickalert',
     host='127.0.0.1', port=3306
 )
 
@@ -36,4 +44,4 @@ class Annonce(Model):
 #        db.create_tables([Annonce])
 
 
-    
+
