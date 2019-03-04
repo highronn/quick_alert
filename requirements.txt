@@ -1,0 +1,6 @@
+peewee==3.8.2
+lxml==4.3.2
+requests==2.21.0
+beautifulsoup4==4.7.1
+PyMySQL==0.9.3
+py-trello==0.6.1
