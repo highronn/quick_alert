@@ -23,7 +23,7 @@ AD_REQUIRED_FIELDS = {
     "dtCreation": DateTimeField(null=True, default=None),
     "titre": CharField(null=True, default=""),
     "libelle": CharField(null=True, default=""),
-    "descriptif": TextField(),
+    "descriptif": TextField(null=True, default=""),
     "prix": CharField(null=True, default=""),
     "prixUnite": CharField(null=True, default=""),
     "prixMention": CharField(null=True, default=""),
@@ -144,7 +144,7 @@ def search(parameters):
 
         #print("RONY {}".format(ad_fields["descriptif"]))
         ad_fields["descriptif"] = "FUCK"
-        
+
         ad_model = AdSeLoger.create(**ad_fields)
         ad_model.save()
         #print("AD: {}\n".format(ad_fields))
