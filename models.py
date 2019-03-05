@@ -11,11 +11,13 @@ from peewee import (
     BooleanField,
 )
 
+
 db = quick_alert_db = MySQLDatabase(
     'quickalert',
     user='quickalert', password='quickalert',
     host='127.0.0.1', port=3306
 )
+
 
 class Annonce(Model):
     id = CharField(unique=True, primary_key=True)
@@ -42,6 +44,3 @@ class Annonce(Model):
 #def create_tables():
 #    with db:
 #        db.create_tables([Annonce])
-
-
-

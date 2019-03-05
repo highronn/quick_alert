@@ -1,0 +1,41 @@
+
+      {
+        "ad-providers": ["seloger"],
+          "cities":
+          [
+             
+                        
+                  ["Paris", 75000, 750101]
+                 
+           
+          ],
+          "price": [0, 0],
+          "surface": [0, 0],
+          "rooms": [0, 0],
+          "bedrooms": [0, 0],
+      
+          "leboncoin": {
+            "c": 10,
+            "f": "p",
+            "ret": [1, 2],
+            "q": "terasse"
+          },
+      
+          "seloger": {
+            "idtt": [2],
+            "idtypebien":  [2,1],
+            "getDtCreationMax":1,
+            "sort":"d_dt_crea"
+          },
+          
+          "pap": {
+              "recherche[produit]": "location",
+              "recherche[typesbien][]": "appartement",
+              "order": "date-desc"
+          },
+          
+          "logic-immo": {
+              "domain": "rentals",
+              "order": "date-desc"
+          }
+      }
