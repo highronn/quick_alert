@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from models import quick_alert_db
 
@@ -16,7 +17,8 @@ from peewee import (
 )
 
 AD_REQUIRED_FIELDS = {
-    "idAnnonce": BigIntegerField(primary_key=True, unique=True),
+    #"idAnnonce": BigIntegerField(primary_key=True, unique=True),
+    "idAnnonce": BigIntegerField(null=False),
     "dateinsert": DateTimeField(null=False, default=datetime.now),
     "idTiers": CharField(null=True, default=None),
     "idAgence": CharField(null=True, default=None),
@@ -93,9 +95,9 @@ def search(parameters):
         'px_loyermax': parameters['price'][1],
         'surfacemin': parameters['surface'][0],
         'surfacemax': parameters['surface'][1],
-        # Si parameters['rooms'] = (2, 4) => "2,3,4"
+        # if parameters['rooms'] = (2, 4) => "2,3,4"
         'nbpieces': list(range(parameters['rooms'][0], parameters['rooms'][1] + 1)),
-        # Si parameters['bedrooms'] = (2, 4) => "2,3,4"
+        # if parameters['bedrooms'] = (2, 4) => "2,3,4"
         'nb_chambres': list(range(parameters['bedrooms'][0], parameters['bedrooms'][1] + 1)),
         'ci': [int(cp[2]) for cp in parameters['cities']]
     }
@@ -104,9 +106,9 @@ def search(parameters):
     payload.update(parameters['seloger'])
 
     headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
-    request = requests.get("http://ws.seloger.com/search.xml", params=payload, headers=headers)
+    response = requests.get("http://ws.seloger.com/search.xml", params=payload, headers=headers)
 
-    xml_root = ET.fromstring(request.text)
+    xml_root = ET.fromstring(response.text)
 
     for adNode in xml_root.findall('annonces/annonce'):
         ad_fields = {}
@@ -122,10 +124,11 @@ def search(parameters):
 
         try:
             ad_model = AdSeLoger.create(**ad_fields)
-            #ad_model.save()
+            # ad_model.save()
         except IntegrityError as error:
-            print("ERROR: " + str(error))
-        #break
+            logging.info("ERROR: " + str(error))
+        # break
+
 
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
