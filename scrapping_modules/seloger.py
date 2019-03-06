@@ -88,48 +88,6 @@ def convert_api_field_to_db_col(field_name):
     return field_name.replace('/', '_').lower()
 
 
-def search(parameters):
-    # preparing request params
-    payload = {
-        'px_loyermin': parameters['price'][0],
-        'px_loyermax': parameters['price'][1],
-        'surfacemin': parameters['surface'][0],
-        'surfacemax': parameters['surface'][1],
-        # if parameters['rooms'] = (2, 4) => "2,3,4"
-        'nbpieces': list(range(parameters['rooms'][0], parameters['rooms'][1] + 1)),
-        # if parameters['bedrooms'] = (2, 4) => "2,3,4"
-        'nb_chambres': list(range(parameters['bedrooms'][0], parameters['bedrooms'][1] + 1)),
-        'ci': [int(cp[2]) for cp in parameters['cities']]
-    }
-
-    # adding seloger specific params
-    payload.update(parameters['seloger'])
-
-    headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
-    response = requests.get("http://ws.seloger.com/search.xml", params=payload, headers=headers)
-
-    xml_root = ET.fromstring(response.text)
-
-    for adNode in xml_root.findall('annonces/annonce'):
-        ad_fields = {}
-        ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        for field in AD_REQUIRED_FIELDS:
-            if field == "dateinsert":
-                continue
-
-            field_value = adNode.findtext(field)
-            db_col = convert_api_field_to_db_col(field)
-            ad_fields[db_col] = field_value if field_value else None
-
-        try:
-            ad_model = AdSeLoger.create(**ad_fields)
-            # ad_model.save()
-        except IntegrityError as error:
-            logging.info("ERROR: " + str(error))
-        # break
-
-
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdSeLoger._meta.add_field(
@@ -138,3 +96,57 @@ def init_models():
         )
 
     AdSeLoger.create_table()
+
+
+def search(params):
+    AD_IDS = set()
+
+    # ---------------------------
+    def read_ads(http_response):
+        xml_root = ET.fromstring(http_response.text)
+
+        for adNode in xml_root.findall('annonces/annonce'):
+            ad_fields = {}
+            ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            for field in AD_REQUIRED_FIELDS:
+                if field == "dateinsert":
+                    continue
+
+                field_value = adNode.findtext(field)
+                db_col = convert_api_field_to_db_col(field)
+                ad_fields[db_col] = field_value if field_value else None
+
+            #print("id: {} cp: {}".format(
+            #    ad_fields["idannonce"],
+            #    ad_fields["cp"]
+            #))
+
+            # try:
+            #     ad_model = AdSeLoger.create(**ad_fields)
+            #     # ad_model.save()
+            # except IntegrityError as error:
+            #     logging.info("ERROR: " + str(error))
+            # break
+
+            id_annonce = ad_fields["idannonce"]
+            if id_annonce in AD_IDS:
+                print("ERROR {} already received".format(id_annonce))
+            AD_IDS.add(id_annonce)
+
+        return xml_root.findtext("pageSuivante")
+
+    # ---------------------------
+    headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
+    response = requests.get(
+        "http://ws.seloger.com/search.xml",
+        params=params["request"], headers=headers
+    )
+    next_page = read_ads(response)
+
+    while next_page:
+        #print("read next page: {}".format(next_page))
+        response = requests.get(next_page, headers=headers)
+        next_page = read_ads(response)
+
+    print("{} ads processed.".format(len(AD_IDS)))

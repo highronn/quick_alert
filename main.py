@@ -9,7 +9,7 @@ import logging
 # from scrapping_modules import logic_immo
 from scrapping_modules import seloger
 # from scrapping_modules import leboncoin
-# from scrapping_modules import pap
+from scrapping_modules import pap
 
 
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +18,7 @@ script_path = os.path.abspath(__file__)
 os.chdir(os.path.dirname(script_path))
 
 # models.create_tables()
-
+"""
 SELOGER_CONF_LIST = [
     "data/paris01.json",
     "data/paris02.json",
@@ -46,7 +46,17 @@ logging.info("Retrieving from seloger")
 seloger.init_models()
 
 for conf in SELOGER_CONF_LIST:
-    with open(conf, encoding='utf-8') as parameters:
+    with open(conf, encoding='utf-8') as parameters_data:
         logging.info("read conf file: {}".format(conf))
-        parameters = json.load(parameters)
+        parameters = json.load(parameters_data)
         seloger.search(parameters)
+"""
+
+with open("data/sel.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    seloger.init_models()
+    seloger.search(parameters)
+
+#with open("data/parameters.json", encoding='utf-8') as parameters_data:
+#    parameters = json.load(parameters_data)
+#    pap.search(parameters)
