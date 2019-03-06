@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import math
 
 from models import quick_alert_db
 
@@ -144,9 +145,14 @@ def search(params):
     )
     next_page = read_ads(response)
 
-    while next_page:
-        #print("read next page: {}".format(next_page))
+    max_pages = params.get("max_pages", math.inf)
+    max_pages = math.inf if max_pages <= 0 else max_pages
+    page_count = 1
+
+    while next_page and page_count < max_pages:
+        print("read next page: {}".format(next_page))
         response = requests.get(next_page, headers=headers)
         next_page = read_ads(response)
+        page_count += 1
 
     print("{} ads processed.".format(len(AD_IDS)))
