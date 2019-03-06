@@ -1,6 +1,8 @@
 {
+    "config_id": "sel_0000",
+
     "max_pages": 0,
-    "only_new_ads": false,
+    "only_new_ads": true,
 
     "request": {
         "cp": [75020],

@@ -9,15 +9,13 @@ import logging
 # from scrapping_modules import li
 from scrapping_modules import sel
 # from scrapping_modules import lbc
-from scrapping_modules import pap
+# from scrapping_modules import pap
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 script_path = os.path.abspath(__file__)
 os.chdir(os.path.dirname(script_path))
-
-# models.create_tables()
 
 with open("data/sel.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
