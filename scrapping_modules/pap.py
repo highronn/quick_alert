@@ -3,8 +3,6 @@ from urllib.parse import unquote, urlencode
 from datetime import datetime
 from models import Annonce
 
-"""Module qui récupère les annonces de PAP"""
-
 header = {
     'X-Device-Gsf': '36049adaf18ade77',
     'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)',
