@@ -83,7 +83,6 @@ class AdSeLoger(Model):
     class Meta:
         database = quick_alert_db
         db_table = 'sales_sel_buffer_in'
-        primary_key = False
 
 
 class AdSeLogerConf(Model):
@@ -139,10 +138,21 @@ def search(params):
                 db_col = convert_api_field_to_db_col(field)
                 ad_fields[db_col] = field_value if field_value else None
 
-            if limit_date and ad_fields["dtfraicheur"] <= limit_date:
+            id_annonce = ad_fields["idannonce"]
+            dt_refresh = ad_fields["dtfraicheur"]
+            dt_creation = ad_fields["dtcreation"]
+
+            #if dt_refresh < dt_creation:
+            #    logging.warning("annonce [{}] has inconsistent dates [{} < {}]".format(
+            #        id_annonce,
+            #        dt_refresh,
+            #        dt_creation
+            #    ))
+
+            if limit_date and dt_refresh <= limit_date:
                 continue
 
-            #logging.info("id: {} dt: {}".format(ad_fields["idannonce"], ad_fields["dtcreation"]))
+            #logging.info("id: {} dt: {}".format(id_annonce, dt_creation))
 
             if db_insert:
                 try:
@@ -151,9 +161,8 @@ def search(params):
                 except IntegrityError as error:
                    logging.info("ERROR: " + str(error))
 
-            id_annonce = ad_fields["idannonce"]
             if id_annonce in AD_IDS:
-                logging.error("annonce id [{}] already received".format(id_annonce))
+                logging.error("annonce [{}] already received".format(id_annonce))
             AD_IDS.add(id_annonce)
 
         next_page_url = xml_root.findtext("pageSuivante")
