@@ -139,8 +139,8 @@ def search(params):
                 db_col = convert_api_field_to_db_col(field)
                 ad_fields[db_col] = field_value if field_value else None
 
-            if limit_date and ad_fields["dtcreation"] <= limit_date:
-                return -1
+            if limit_date and ad_fields["dtfraicheur"] <= limit_date:
+                continue
 
             #logging.info("id: {} dt: {}".format(ad_fields["idannonce"], ad_fields["dtcreation"]))
 
