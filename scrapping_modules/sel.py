@@ -59,7 +59,7 @@ AD_REQUIRED_FIELDS = {
     "siLotNeuf": BooleanField(null=True, default=False),
     "siMandatExclusif": BooleanField(null=True, default=False),
     "siMandatStar": BooleanField(null=True, default=False),
-    "contact/siAudiotel": CharField(null=True, default=None),
+    "contact/siAudiotel":  BooleanField(null=True, default=False),
     "contact/idPublication": CharField(null=True, default=None),
     "contact/nom": CharField(null=True, default=None),
     "contact/rcsSiren": CharField(null=True, default=None),
@@ -75,7 +75,7 @@ AD_REQUIRED_FIELDS = {
     "siterrasse": BooleanField(null=True, default=False),
     "nbterrasses": CharField(null=True, default=None),
     "sipiscine": BooleanField(null=True, default=False),
-    "proximite": CharField(null=True, default=None)
+    "proximite": TextField(null=True, default=None)
 }
 
 
