@@ -11,6 +11,7 @@ from peewee import (
     TextField,
     DateTimeField,
     BigIntegerField,
+    BooleanField,
 
     Model,
 
@@ -55,9 +56,9 @@ AD_REQUIRED_FIELDS = {
     "bilanConsoEnergie": CharField(null=True, default=None),
     "emissionGES": CharField(null=True, default=None),
     "bilanEmissionGES": CharField(null=True, default=None),
-    "siLotNeuf": CharField(null=True, default=None),
-    "siMandatExclusif": CharField(null=True, default=None),
-    "siMandatStar": CharField(null=True, default=None),
+    "siLotNeuf": BooleanField(null=True, default=False),
+    "siMandatExclusif": BooleanField(null=True, default=False),
+    "siMandatStar": BooleanField(null=True, default=False),
     "contact/siAudiotel": CharField(null=True, default=None),
     "contact/idPublication": CharField(null=True, default=None),
     "contact/nom": CharField(null=True, default=None),
@@ -66,14 +67,14 @@ AD_REQUIRED_FIELDS = {
     "nbsallesdebain": CharField(null=True, default=None),
     "nbsalleseau": CharField(null=True, default=None),
     "nbtoilettes": CharField(null=True, default=None),
-    "sisejour": CharField(null=True, default=None),
+    "sisejour": BooleanField(null=True, default=False),
     "surfsejour": CharField(null=True, default=None),
     "anneeconstruct": CharField(null=True, default=None),
     "nbparkings": CharField(null=True, default=None),
     "nbboxes": CharField(null=True, default=None),
-    "siterrasse": CharField(null=True, default=None),
+    "siterrasse": BooleanField(null=True, default=False),
     "nbterrasses": CharField(null=True, default=None),
-    "sipiscine": CharField(null=True, default=None),
+    "sipiscine": BooleanField(null=True, default=False),
     "proximite": CharField(null=True, default=None)
 }
 
@@ -113,8 +114,18 @@ def search(params):
     AD_IDS = set()
 
     # ---------------------------
-    def read_ads(http_response, limit_date):
-        xml_root = ET.fromstring(http_response.text)
+    def log_batch_info(batch_id, page_id):
+        logging.info("batch {}: process page {}".format(
+            batch_id,
+            page_id
+        ))
+
+    def read_sel_ads(req_params, page_id, limit_date, db_insert=True):
+        sel_api_host = "http://ws.seloger.com/search.xml"
+        headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
+        req_params['SEARCHpg'] = page_id
+        response = requests.get(sel_api_host, params=req_params, headers=headers)
+        xml_root = ET.fromstring(response.text)
 
         for adNode in xml_root.findall('annonces/annonce'):
             ad_fields = {}
@@ -129,30 +140,46 @@ def search(params):
                 ad_fields[db_col] = field_value if field_value else None
 
             if limit_date and ad_fields["dtcreation"] <= limit_date:
-                return None
+                return -1
 
             #logging.info("id: {} dt: {}".format(ad_fields["idannonce"], ad_fields["dtcreation"]))
 
-            try:
-                ad_model = AdSeLoger.create(**ad_fields)
-                # ad_model.save()
-            except IntegrityError as error:
-                logging.info("ERROR: " + str(error))
+            if db_insert:
+                try:
+                    ad_model = AdSeLoger.create(**ad_fields)
+                    # ad_model.save()
+                except IntegrityError as error:
+                   logging.info("ERROR: " + str(error))
 
             id_annonce = ad_fields["idannonce"]
             if id_annonce in AD_IDS:
                 logging.error("annonce id [{}] already received".format(id_annonce))
             AD_IDS.add(id_annonce)
 
-        return xml_root.findtext("pageSuivante")
+        next_page_url = xml_root.findtext("pageSuivante")
+        has_next_page = (next_page_url is not None)
+        return (page_id+1) if has_next_page else -1
 
     # ---------------------------
-    # config process
+    ## config process
+    use_db_insertion = True
+
+    # custom request params
     req_params = params['request']
 
+    # start_page
+    page_id = int(params.get("start_page", 1))
+    page_id = page_id if page_id > 0 else 1
+
+    if "SEARCHpg" in req_params:
+        logging.warning("'SEARCHpg' param will be ignored. Use 'start_page' instead")
+
+    logging.info("start page: {}".format(page_id))
+
+    # max pages
     max_pages = params.get("max_pages", math.inf)
     max_pages = math.inf if max_pages <= 0 else max_pages
-    page_count = 1
+    batch_id = 1
 
     config_id = params["config_id"]
     assert config_id, "no 'config_id' parameter set"
@@ -177,25 +204,17 @@ def search(params):
         limit_date = None
 
     # request process
-    logging.info("process page {}".format(page_count))
+    log_batch_info(batch_id, page_id)
+    page_id = read_sel_ads(req_params, page_id, limit_date, db_insert=use_db_insertion)
 
-    headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
-    response = requests.get(
-        "http://ws.seloger.com/search.xml",
-        params=req_params, headers=headers
-    )
-    next_page = read_ads(response, limit_date)
-
-    while next_page and page_count < max_pages:
-        page_count += 1
-        logging.info("process page {}".format(page_count))
-
-        response = requests.get(next_page, headers=headers)
-        next_page = read_ads(response, limit_date)
+    while (page_id > 0) and (batch_id < max_pages):
+        batch_id += 1
+        log_batch_info(batch_id, page_id)
+        page_id = read_sel_ads(req_params, page_id, limit_date, db_insert=use_db_insertion)
 
     if use_limit_date:
         new_limit_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         AdSeLogerConf.replace(id=config_id, limit_date=new_limit_date).execute()
-        logging.info("set '{}' config limit date to '{}'".format(config_id, new_limit_date))
+        logging.info("set '{}' config new limit date to '{}'".format(config_id, new_limit_date))
 
     logging.info("{} ads processed.".format(len(AD_IDS)))

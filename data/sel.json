@@ -1,11 +1,12 @@
 {
     "config_id": "sel_0000",
 
+    "start_page": 0,
     "max_pages": 0,
-    "only_new_ads": true,
+    "only_new_ads": false,
 
     "request": {
-        "cp": [75020],
+        "cp": [75],
         "tri": "d_dt_crea",
         "idtt": 1,
         "idtypebien": "1,2",
