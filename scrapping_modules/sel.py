@@ -149,7 +149,7 @@ def search(params):
             #        dt_creation
             #    ))
 
-            if limit_date and dt_refresh <= limit_date:
+            if limit_date and dt_creation <= limit_date:
                 continue
 
             #logging.info("id: {} dt: {}".format(id_annonce, dt_creation))
