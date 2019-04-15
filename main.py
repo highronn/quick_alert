@@ -24,4 +24,5 @@ os.chdir(os.path.dirname(script_path))
 
 with open("data/parameters.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
+    pap.init_models()
     pap.search(parameters)
