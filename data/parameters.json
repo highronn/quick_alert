@@ -17,14 +17,6 @@
       "q": "terasse"
     },
 
-    "seloger": {
-      "cp": 75020,
-      "tri": "d_dt_crea",
-      "idtt": 1,
-      "idtypebien": "1,2",
-      "getDtCreationMax": 1
-    },
-
     "pap": {
         "recherche[produit]": "location",
         "recherche[typesbien][]": "appartement",
