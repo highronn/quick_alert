@@ -18,11 +18,14 @@ from peewee import (
 
 AD_REQUIRED_FIELDS = {
     "id": BigIntegerField(null=False),
-    "title": CharField(null=True, default=None),
+    "typebien": CharField(null=True, default=None),
+    "description": CharField(null=True, default=None),
+    "telephone": CharField(null=True, default=None),
+    "date_classement": DateTimeField(null=True, default=None),
     "prix": CharField(null=True, default=None),
     "surface": CharField(null=True, default=None),
-    "rooms": CharField(null=True, default=None),
-    "bedrooms": CharField(null=True, default=None),
+    "nb_pieces": CharField(null=True, default=None),
+    "nb_chambres_max": CharField(null=True, default=None),
     "city": CharField(null=True, default=None),
     "link": CharField(null=True, default=None),
 }
@@ -59,12 +62,12 @@ def init_models():
 def search(parameters):
     # Préparation des paramètres de la requête
     payload = {
-        'recherche[prix][min]': parameters['price'][0],  # Loyer min
-        'recherche[prix][max]': parameters['price'][1],  # Loyer max
-        'recherche[surface][min]': parameters['surface'][0],  # Surface min
-        'recherche[surface][max]': parameters['surface'][1],  # Surface max
-        'recherche[nb_pieces][min]': parameters['rooms'][0],  # Pièces min
-        'recherche[nb_chambres][min]': parameters['bedrooms'][0],  # Chambres min
+        #'recherche[prix][min]': parameters['price'][0],  # Loyer min
+        #'recherche[prix][max]': parameters['price'][1],  # Loyer max
+        #'recherche[surface][min]': parameters['surface'][0],  # Surface min
+        #'recherche[surface][max]': parameters['surface'][1],  # Surface max
+        #'recherche[nb_pieces][min]': parameters['rooms'][0],  # Pièces min
+        #'recherche[nb_chambres][min]': parameters['bedrooms'][0],  # Chambres min
         'size': 200,
         'page': 1
     }
@@ -79,6 +82,7 @@ def search(parameters):
         params += "&recherche[geo][ids][]=%s" % place_search(city[1])
 
     request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header)
+    #print("URI = {}".format(request.url))
     data = request.json()
 
     #print(data)
@@ -87,8 +91,9 @@ def search(parameters):
         output.write(str(data))
 
     for ad in data['_embedded']['annonce']:
-        #_request = requests.get("https://ws.pap.fr/immobilier/annonces/%s" % ad['id'], headers=header)
-        #_data = _request.json()
+        ad_id = ad.get('id')
+        _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
+        _data = _request.json()
 
         photos = list()
         if ad.get("nb_photos") > 0:
@@ -96,45 +101,27 @@ def search(parameters):
                 photos.append(photo['_links']['self']['href'])
 
         ad_fields = dict(
-        id = ad.get('id'),
-        title = "{} {} pièces".format(ad.get("typebien"), ad.get("nb_pieces")),
-        #description = str(_data.get("texte")),
-        #telephone = _data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
-        #created = datetime.fromtimestamp(_data.get("date_classement")),
-        prix = ad.get('prix'),
-        surface = ad.get('surface'),
-        rooms = ad.get('nb_pieces'),
-        bedrooms = ad.get('nb_chambres_max'),
-        city = ad["_embedded"]['place'][0]['title'],
-        #picture = photos,
-        link = ad["_links"]['desktop']['href']
+            id = ad_id,
+            typebien = ad.get("typebien"),
+            description = str(_data.get("texte")),
+            telephone = _data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
+            date_classement = datetime.fromtimestamp(_data.get("date_classement")),
+            prix = ad.get('prix'),
+            surface = ad.get('surface'),
+            nb_pieces = ad.get('nb_pieces'),
+            nb_chambres_max = ad.get('nb_chambres_max'),
+            city = ad["_embedded"]['place'][0]['title'],
+            #picture = photos,
+            link = ad["_links"]['desktop']['href']
         )
+
+        #print("[\n{}]\n".format(",\n".join("{}: {}".format(k,v) for k,v in ad_fields.items())))
 
         try:
             ad_model = AdPap.create(**ad_fields)
             # ad_model.save()
         except IntegrityError as error:
             logging.info("ERROR: " + str(error))
-        #print(str(extract) + "\n------------------------")
-
-        #annonce, created = Annonce.create_or_get(
-        #    id='pap-%s' % _data.get('id'),
-        #    site="PAP",
-        #    title="%s %s pièces" % (_data.get("typebien"), _data.get("nb_pieces")),
-        #    description=str(_data.get("texte")),
-        #    telephone=_data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
-        #    created=datetime.fromtimestamp(_data.get("date_classement")),
-        #    price=_data.get('prix'),
-        #    surface=_data.get('surface'),
-        #    rooms=_data.get('nb_pieces'),
-        #    bedrooms=_data.get('nb_chambres_max'),
-        #    city=_data["_embedded"]['place'][0]['title'],
-        #    link=_data["_links"]['desktop']['href'],
-        #    picture=photos
-        #)
-
-        #if created:
-        #    annonce.save()
 
 
 def place_search(zipcode):
