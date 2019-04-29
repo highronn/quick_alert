@@ -22,7 +22,7 @@ os.chdir(os.path.dirname(script_path))
 #    sel.init_models()
 #    sel.search(parameters)
 
-with open("data/parameters.json", encoding='utf-8') as parameters_data:
+with open("data/pap.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
     pap.init_models()
     pap.search(parameters)
