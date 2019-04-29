@@ -1,0 +1,18 @@
+{
+    "cities":
+    [
+        ["Nanterre", 92000],
+        ["Rueil-Malmaison", 92500],
+        ["Paris", 75000]
+    ],
+    "price": [200, 900],
+    "surface": [30, 70],
+    "rooms": [2, 5],
+    "bedrooms": [1, 2],
+
+    "pap": {
+        "recherche[produit]": "vente",
+        "recherche[typesbien][]": "appartement",
+        "order": "date-desc"
+    }
+}

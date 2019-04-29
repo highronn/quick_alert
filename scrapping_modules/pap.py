@@ -19,7 +19,7 @@ from peewee import (
 AD_REQUIRED_FIELDS = {
     "id": BigIntegerField(null=False),
     "typebien": CharField(null=True, default=None),
-    "description": CharField(null=True, default=None),
+    "description": TextField(null=True, default=None),
     "telephone": CharField(null=True, default=None),
     "date_classement": DateTimeField(null=True, default=None),
     "prix": CharField(null=True, default=None),
