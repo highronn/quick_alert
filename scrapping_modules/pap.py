@@ -6,6 +6,7 @@ from models import quick_alert_db
 
 from peewee import (
     CharField,
+    IntegerField,
     TextField,
     DateTimeField,
     BigIntegerField,
@@ -21,10 +22,10 @@ AD_REQUIRED_FIELDS = {
     "date_classement": DateTimeField(null=True, default=None),
     # produit
     "typebien": CharField(null=True, default=None),
-    "prix": CharField(null=True, default=None),
-    "surface": CharField(null=True, default=None),
-    "nb_pieces": CharField(null=True, default=None),
-    "nb_chambres_max": CharField(null=True, default=None),
+    "prix": IntegerField(null=True, default=None),
+    "surface": IntegerField(null=True, default=None),
+    "nb_pieces": IntegerField(null=True, default=None),
+    "nb_chambres_max": IntegerField(null=True, default=None),
     # nb_photos
     # marker
     "telephone": CharField(null=True, default=None),
@@ -100,6 +101,9 @@ def search(parameters):
 
     for ad in data['_embedded']['annonce']:
         ad_id = ad.get('id')
+
+        print("Handle ad {}".format(ad_id))
+
         _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
         _data = _request.json()
 
