@@ -18,16 +18,24 @@ from peewee import (
 
 AD_REQUIRED_FIELDS = {
     "id": BigIntegerField(null=False),
-    "typebien": CharField(null=True, default=None),
-    "description": TextField(null=True, default=None),
-    "telephone": CharField(null=True, default=None),
     "date_classement": DateTimeField(null=True, default=None),
+    # produit
+    "typebien": CharField(null=True, default=None),
     "prix": CharField(null=True, default=None),
     "surface": CharField(null=True, default=None),
     "nb_pieces": CharField(null=True, default=None),
     "nb_chambres_max": CharField(null=True, default=None),
-    "city": CharField(null=True, default=None),
+    # nb_photos
+    # marker
+    "telephone": CharField(null=True, default=None),
     "link": CharField(null=True, default=None),
+    # slug
+    # title
+    # lat
+    # lng
+    # is_idf
+    "city": CharField(null=True, default=None),
+    "texte": TextField(null=True, default=None),
 }
 
 class AdPap(Model):
@@ -102,17 +110,16 @@ def search(parameters):
 
         ad_fields = dict(
             id = ad_id,
-            typebien = ad.get("typebien"),
-            description = str(_data.get("texte")),
-            telephone = _data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
             date_classement = datetime.fromtimestamp(_data.get("date_classement")),
+            typebien = ad.get("typebien"),
             prix = ad.get('prix'),
             surface = ad.get('surface'),
             nb_pieces = ad.get('nb_pieces'),
             nb_chambres_max = ad.get('nb_chambres_max'),
+            telephone = _data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
             city = ad["_embedded"]['place'][0]['title'],
-            #picture = photos,
-            link = ad["_links"]['desktop']['href']
+            link = ad["_links"]['desktop']['href'],
+            texte = str(_data.get("texte")),
         )
 
         #print("[\n{}]\n".format(",\n".join("{}: {}".format(k,v) for k,v in ad_fields.items())))
