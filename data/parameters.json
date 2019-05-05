@@ -1,5 +1,5 @@
 {
-	  "ad-providers": ["seloger"],
+    "ad-providers": ["seloger"],
     "cities":
     [
         ["Nanterre", 92000, 920050],
@@ -15,12 +15,6 @@
       "f": "p",
       "ret": [1, 2],
       "q": "terasse"
-    },
-
-    "pap": {
-        "recherche[produit]": "location",
-        "recherche[typesbien][]": "appartement",
-        "order": "date-desc"
     },
 
     "logic-immo": {
