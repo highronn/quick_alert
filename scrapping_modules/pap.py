@@ -1,4 +1,5 @@
 import requests
+import time
 from urllib.parse import unquote, urlencode
 from datetime import datetime
 
@@ -11,6 +12,7 @@ from peewee import (
     DateTimeField,
     BigIntegerField,
     BooleanField,
+    FloatField,
 
     Model,
 
@@ -20,22 +22,26 @@ from peewee import (
 AD_REQUIRED_FIELDS = {
     "id": BigIntegerField(null=False),
     "date_classement": DateTimeField(null=True, default=None),
-    # produit
     "typebien": CharField(null=True, default=None),
     "prix": IntegerField(null=True, default=None),
     "surface": IntegerField(null=True, default=None),
     "nb_pieces": IntegerField(null=True, default=None),
     "nb_chambres_max": IntegerField(null=True, default=None),
-    # nb_photos
-    # marker
     "telephone": CharField(null=True, default=None),
-    "link": CharField(null=True, default=None),
-    # slug
-    # title
-    # lat
-    # lng
-    # is_idf
     "city": CharField(null=True, default=None),
+    "nouvelle_annonce": BooleanField(null=True, default=False),
+    "lat": FloatField(null=True, default=False),
+    "lng": FloatField(null=True, default=False),
+    "classe_energie": CharField(null=True, default=None),
+    "visite_virtuelle": CharField(null=True, default=None),
+    "nb_photos": IntegerField(null=True, default=None),
+    "is_idf": BooleanField(null=True, default=False),
+    "place_lat": FloatField(null=True, default=False),
+    "place_lng": FloatField(null=True, default=False),
+    "place_title": CharField(null=True, default=None),
+    "place_slug": CharField(null=True, default=None),
+    "place_id": CharField(null=True, default=None),
+    "link": CharField(null=True, default=None),
     "texte": TextField(null=True, default=None),
 }
 
@@ -81,6 +87,8 @@ def search(parameters):
         'page': 1
     }
 
+    wait_time = max(parameters.get("wait_time", 0), 0)
+
     # Insertion des paramètres propres à PAP
     payload.update(parameters['pap'])
 
@@ -112,6 +120,9 @@ def search(parameters):
             for photo in ad["_embedded"]['photo']:
                 photos.append(photo['_links']['self']['href'])
 
+        ad_place = _data["_embedded"]['place'][0]
+        ad_marker = _data['marker']
+
         ad_fields = dict(
             id = ad_id,
             date_classement = datetime.fromtimestamp(_data.get("date_classement")),
@@ -121,7 +132,19 @@ def search(parameters):
             nb_pieces = ad.get('nb_pieces'),
             nb_chambres_max = ad.get('nb_chambres_max'),
             telephone = _data.get("telephones")[0].replace('.', '') if len(_data.get("telephones")) > 0 else None,
-            city = ad["_embedded"]['place'][0]['title'],
+            city = ad_place['title'],
+            nouvelle_annonce = ad.get("nouvelle_annonce"),
+            lat = ad_marker.get("lat") if ad_marker else None,
+            lng = ad_marker.get("lng") if ad_marker else None,
+            classe_energie = _data.get('classe_energie'),
+            visite_virtuelle = ad.get('visite_virtuelle'),
+            nb_photos = ad["nb_photos"],
+            is_idf = ad_place.get('is_idf'),
+            place_lat = float(ad_place.get('lat')),
+            place_lng = float(ad_place.get('lng')),
+            place_title = ad_place.get('title'),
+            place_slug = ad_place.get('slug'),
+            place_id = ad_place.get('id'),
             link = ad["_links"]['desktop']['href'],
             texte = str(_data.get("texte")),
         )
@@ -133,6 +156,8 @@ def search(parameters):
             # ad_model.save()
         except IntegrityError as error:
             logging.info("ERROR: " + str(error))
+
+        time.sleep(wait_time/1000.0)
 
 
 def place_search(zipcode):

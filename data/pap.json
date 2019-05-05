@@ -1,4 +1,5 @@
 {
+    "wait_time": 0,
     "cities":
     [
         ["Nanterre", 92000],
