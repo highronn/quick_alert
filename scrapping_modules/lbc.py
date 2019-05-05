@@ -33,7 +33,12 @@ def search(parameters):
                             data=token)
     data = request.json()
 
-    for ad in data['ads']:
+    ads = data['ads']
+
+    if ads is None:
+        return
+
+    for ad in ads:
         _payload = {'ad_id': ad['list_id']}
         _request = requests.post("https://mobile.leboncoin.fr/templates/api/view.json", params=_payload, headers=header,
                                  data=token)
