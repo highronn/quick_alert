@@ -1,10 +1,11 @@
 # coding: utf-8
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 import math
 
-from models import quick_alert_db
+from models import dev_db
 
 import requests
 import xml.etree.ElementTree as ET
@@ -14,11 +15,26 @@ from peewee import (
     DateTimeField,
     BigIntegerField,
     BooleanField,
-
+    IntegerField,
+    DecimalField,
+    IntegrityError,
     Model,
-
-    IntegrityError
+    MySQLDatabase
 )
+
+start_date_c = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+start_date_m = (datetime.now()+ relativedelta(days=-1)).strftime('%Y-%m-%d 00:00:00')
+
+quick_alert_db = MySQLDatabase(
+    'quickalert',
+    user='quickalert',
+    password='quickalert',
+    host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
+    port=3306
+)
+
+#db = dev_db
+db = quick_alert_db
 
 AD_REQUIRED_FIELDS = {
     #"idAnnonce": BigIntegerField(primary_key=True, unique=True),
@@ -46,9 +62,6 @@ AD_REQUIRED_FIELDS = {
     "cp": CharField(null=True, default=None),
     "codeInsee": CharField(null=True, default=None),
     "ville": CharField(null=True, default=None),
-    "logoTnyUrl": CharField(null=True, default=None),
-    "logoBigUrl": CharField(null=True, default=None),
-    "firstThumb": CharField(null=True, default=None),
     "permaLien": CharField(null=True, default=None),
     "latitude": CharField(null=True, default=None),
     "longitude": CharField(null=True, default=None),
@@ -58,9 +71,9 @@ AD_REQUIRED_FIELDS = {
     "bilanConsoEnergie": CharField(null=True, default=None),
     "emissionGES": CharField(null=True, default=None),
     "bilanEmissionGES": CharField(null=True, default=None),
-    "siLotNeuf": BooleanField(null=True, default=False),
-    "siMandatExclusif": BooleanField(null=True, default=False),
-    "siMandatStar": BooleanField(null=True, default=False),
+    "siLotNeuf": CharField(null=True, default=False),
+    "siMandatExclusif": CharField(null=True, default=False),
+    "siMandatStar": CharField(null=True, default=False),
     "contact/siAudiotel":  BooleanField(null=True, default=False),
     "contact/idPublication": CharField(null=True, default=None),
     "contact/nom": CharField(null=True, default=None),
@@ -69,28 +82,29 @@ AD_REQUIRED_FIELDS = {
     "nbsallesdebain": CharField(null=True, default=None),
     "nbsalleseau": CharField(null=True, default=None),
     "nbtoilettes": CharField(null=True, default=None),
-    "sisejour": BooleanField(null=True, default=False),
+    "sisejour": CharField(null=True, default=False),
     "surfsejour": CharField(null=True, default=None),
     "anneeconstruct": CharField(null=True, default=None),
     "nbparkings": CharField(null=True, default=None),
     "nbboxes": CharField(null=True, default=None),
-    "siterrasse": BooleanField(null=True, default=False),
+    "siterrasse": CharField(null=True, default=False),
     "nbterrasses": CharField(null=True, default=None),
-    "sipiscine": BooleanField(null=True, default=False),
+    "sipiscine": CharField(null=True, default=False),
     "proximite": TextField(null=True, default=None)
 }
 
 
 class AdSeLoger(Model):
     class Meta:
-        database = quick_alert_db
-        db_table = 'sales_sel_buffer_in'
+        database = db
+        db_table = 't_sel_buffer_in'
+        primary_key = False
 
 
 class AdSeLogerConf(Model):
     class Meta:
-        database = quick_alert_db
-        db_table = 'sel_req_config'
+        database = db
+        db_table = 't_sel_script_info'
 
     id = CharField(unique=True, primary_key=True)
     limit_date = DateTimeField(null=False)
@@ -116,7 +130,8 @@ def search(params):
 
     # ---------------------------
     def log_batch_info(batch_id, page_id):
-        logging.info("batch {}: process page {}".format(
+        logging.info("{} - batch {}: process page {}".format(
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             batch_id,
             page_id
         ))
@@ -151,8 +166,10 @@ def search(params):
             #        dt_creation
             #    ))
 
-            if limit_date and dt_creation <= limit_date:
-                continue
+            if limit_date and dt_creation <= limit_date and req_params['tri'] == 'd_dt_crea' :
+                return -1
+            elif limit_date and dt_refresh <= limit_date and req_params['tri'] == 'd_dt_maj' :
+                return -1
 
             #logging.info("id: {} dt: {}".format(id_annonce, dt_creation))
 
@@ -163,8 +180,8 @@ def search(params):
                 except IntegrityError as error:
                    logging.info("ERROR: " + str(error))
 
-            if id_annonce in AD_IDS:
-                logging.error("annonce [{}] already received".format(id_annonce))
+            #if id_annonce in AD_IDS:
+            #    logging.error("annonce [{}] already received".format(id_annonce))
             AD_IDS.add(id_annonce)
 
         next_page_url = xml_root.findtext("pageSuivante")
@@ -201,9 +218,9 @@ def search(params):
     # max_pages param has priority over only_new_ads
     use_limit_date = only_new_ads and max_pages == math.inf
     if use_limit_date:
-        if 'tri' not in req_params or req_params['tri'] != 'd_dt_crea':
-            logging.warning("force parameter 'tri' = 'd_dt_crea'")
-            req_params['tri'] = 'd_dt_crea'
+        if 'tri' not in req_params or req_params['tri'] not in ['d_dt_crea','d_dt_maj']:
+            logging.warning("force parameter 'tri' = 'd_dt_crea' or 'tri' = 'd_dt_maj' ")
+            #req_params['tri'] = 'd_dt_crea'
 
         try:
             config = AdSeLogerConf.get(AdSeLogerConf.id == config_id)
@@ -223,9 +240,13 @@ def search(params):
         log_batch_info(batch_id, page_id)
         page_id = read_sel_ads(req_params, page_id, limit_date, db_insert=use_db_insertion)
 
-    if use_limit_date:
-        new_limit_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    if use_limit_date and req_params['tri'] == 'd_dt_crea':
+        new_limit_date = start_date_c
         AdSeLogerConf.replace(id=config_id, limit_date=new_limit_date).execute()
-        logging.info("set '{}' config new limit date to '{}'".format(config_id, new_limit_date))
+        logging.info("set '{}' config new limit date for d_dt_crea to '{}'".format(config_id, new_limit_date))
+    elif use_limit_date and req_params['tri'] == 'd_dt_maj':
+        new_limit_date = start_date_m
+        AdSeLogerConf.replace(id=config_id, limit_date=new_limit_date).execute()
+        logging.info("set '{}' config new limit date for d_dt_maj to '{}'".format(config_id, new_limit_date))
 
     logging.info("{} ads processed.".format(len(AD_IDS)))
