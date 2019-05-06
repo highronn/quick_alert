@@ -1,0 +1,16 @@
+{
+    "cities":
+    [
+              ["Paris", 75007]
+    ],
+    "price": [0, 0],
+    "surface": [0, 0],
+    "rooms": [0, 0],
+    "bedrooms": [0, 0],
+
+    "pap": {
+        "recherche[produit]": "vente",
+        "recherche[typesbien][]": "appartement",
+        "order": "date-desc"
+    }
+}

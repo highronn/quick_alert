@@ -1,0 +1,15 @@
+{
+    "config_id": "sel_095_1_crea",
+
+    "start_page": 0,
+    "max_pages": 0,
+    "only_new_ads": true,
+
+    "request": {
+        "cp": [95],
+        "tri": "d_dt_crea",
+        "idtt": "1",
+        "idtypebien": "1,2",
+        "getDtCreationMax": 1
+    }
+}
