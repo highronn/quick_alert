@@ -2,9 +2,8 @@ import requests
 import time
 from urllib.parse import unquote, urlencode
 from datetime import datetime
-
+import sys 
 from models import dev_db
-
 from peewee import (
     CharField,
     IntegerField,
@@ -89,6 +88,7 @@ def init_models():
         AdPap._meta.add_field(name, typ)
 
     AdPap.create_table(safe=True)
+    
     #AdPapConf.create_table(safe=True)
 
 
@@ -105,7 +105,9 @@ def search(parameters):
         #'page': 1
     }
 
-    wait_time = max(parameters.get("wait_time", 0), 0) / 1000.0
+    #wait_time = max(parameters.get("wait_time", 0), 1) / 1000.0
+    wait_time = 1.5
+    #wait_time = 0
 
     # Insertion des paramètres propres à PAP
     payload.update(parameters['pap'])
@@ -116,20 +118,85 @@ def search(parameters):
     for city in parameters['cities']:
         params += "&recherche[geo][ids][]=%s" % place_search(city[1])
 
-    request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header)
-    print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
-    data = request.json()
 
+
+####################################################################
+    #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header)
+    #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
+    #data = request.json()  
     #print(data)
+####################################################################
+
+    v_timer = 0
+    v_wait = 5
+    
+    print("Retrieve Ads")
+
+    for i in range(0,10):
+        try:
+            request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=3)
+            #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
+            data = request.json()            
+        except requests.exceptions.ConnectionError as r:
+            r.status_code = "Connection refused" 
+            time.sleep(v_timer)
+            v_timer += v_wait            
+            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            continue
+        except requests.exceptions.ReadTimeout as r:
+            r.status_code = "Connection Timeout" 
+            time.sleep(v_timer)
+            v_timer += v_wait            
+            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            continue
+        else:
+            break
+    else:
+        return
+            
+####################################################################
+    
 
     with open("output.json", "w+") as output:
         output.write(str(data))
 
+    print("Retrieve Ad details")
     for it, ad in enumerate(data['_embedded'].get('annonce', [])):
         ad_id = ad.get('id')
+####################################################################
+        #_request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
+        #_data = _request.json()
+####################################################################
+        v_timer = 0
+        v_wait = 5
+    
+        
 
-        _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
-        _data = _request.json()
+        for i in range(0,10):
+            try:
+                _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header, timeout=3)
+                #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
+                _data = _request.json()
+            except requests.exceptions.ConnectionError as r:
+                r.status_code = "Connection refused" 
+                time.sleep(v_timer)
+                v_timer += v_wait            
+                print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+                continue
+            except requests.exceptions.ReadTimeout as r:
+                r.status_code = "Connection Timeout" 
+                time.sleep(v_timer)
+                v_timer += v_wait            
+                print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+                continue
+            else:
+                break
+        
+        else:
+            return   
+####################################################################
+
+            
 
         #photos = list()
         #if ad.get("nb_photos") > 0:
@@ -167,15 +234,33 @@ def search(parameters):
             texte = str(_data.get("texte")),
         )
 
+
+####################################################################
+        v_timer = 0
+        v_wait = 5
         #print("[\n{}]\n".format(",\n".join("{}: {}".format(k,v) for k,v in ad_fields.items())))
         print("{} Import ADS : {}  {} sec ...".format(it, ad_id, wait_time))
-
-        try:
-            ad_model = AdPap.create(**ad_fields)
-            # ad_model.save()
-        except IntegrityError as error:
-            logging.info("ERROR: " + str(error))
-
+        for i in range(0,2):
+            try:
+                #db.connect
+                ad_model = AdPap.create(**ad_fields)
+                # ad_model.save()
+                #db.close
+            except IntegrityError as error:
+                logging.info("ERROR: " + str(error))
+                return
+            except:
+                #logging.info("ERROR: Database error connection")
+                time.sleep(v_timer)
+                v_timer += v_wait   
+                db.close     
+                init_models()    
+                print ("DB Error - Try again - Waiting : {} sec(s)".format(v_timer))            
+                return 
+            else:
+                break
+                    
+####################################################################
         time.sleep(wait_time)
 
 
@@ -186,8 +271,30 @@ def place_search(zipcode):
         "recherche[cible]": "pap-recherche-ac",
         "recherche[q]": zipcode
     }
+    
+    v_timer = 0
+    v_wait = 5
+    
+    print("Retrieve Ids of postal code : {}".format(zipcode))
 
-    request = requests.get("https://ws.pap.fr/gis/places", params=payload, headers=header)
-    print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
-
-    return request.json()['_embedded']['place'][0]['id']
+    for i in range(0,10):
+        try:
+            request = requests.get("https://ws.pap.fr/gis/places", params=payload, headers=header, timeout=3)
+            #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
+            json = request.json()['_embedded']['place'][0]['id']
+            return json
+        except requests.exceptions.ConnectionError as r:
+            r.status_code = "Connection refused" 
+            time.sleep(v_timer)
+            v_timer += v_wait            
+            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            continue
+        except requests.exceptions.ReadTimeout as r:
+            r.status_code = "Connection Timeout" 
+            time.sleep(v_timer)
+            v_timer += v_wait                     
+            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            continue
+        else:
+            break 
+    

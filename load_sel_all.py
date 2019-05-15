@@ -91,6 +91,27 @@ with open("data/sel_095_2_crea.json", encoding='utf-8') as parameters_data:
     sel.init_models()
     sel.search(parameters)
 
+
+with open("data/sel_971_1_crea.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_971_2_crea.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_972_1_crea.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_972_2_crea.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
 ######################################################################################
 ######################################################################################
 
@@ -170,6 +191,27 @@ with open("data/sel_095_1_maj.json", encoding='utf-8') as parameters_data:
     sel.search(parameters)
 
 with open("data/sel_095_2_maj.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+
+with open("data/sel_971_1_maj.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_971_2_maj.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_972_1_maj.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    sel.init_models()
+    sel.search(parameters)
+
+with open("data/sel_972_2_maj.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
     sel.init_models()
     sel.search(parameters)

@@ -4,6 +4,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
 import math
+import time
 
 from models import dev_db
 
@@ -140,9 +141,34 @@ def search(params):
         sel_api_host = "http://ws.seloger.com/search.xml"
         headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
         req_params['SEARCHpg'] = page_id
+        ##############################################################################################""
         response = requests.get(sel_api_host, params=req_params, headers=headers)
         xml_root = ET.fromstring(response.text)
+        ##############################################################################################""
+        v_timer = 0
+        v_wait = 5
+        xml_root = None
+        for i in range(0,10):
+            try:
+                response = requests.get(sel_api_host, params=req_params, headers=headers, timeout=5)
+                xml_root = ET.fromstring(response.text)
+            except:
+                #logging.info("ERROR: Database error connection")
+                time.sleep(v_timer)
+                v_timer += v_wait   
+                db.close     
+                init_models()    
+                print ("Request Error - Try again - Waiting : {} sec(s)".format(v_timer))            
+                continue
+            else:
+                break 
+        else:
+            return
 
+
+
+
+        ##############################################################################################""
         for adNode in xml_root.findall('annonces/annonce'):
             ad_fields = {}
             ad_fields["dateinsert"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -166,10 +192,12 @@ def search(params):
             #        dt_creation
             #    ))
 
+
             if limit_date and dt_creation <= limit_date and req_params['tri'] == 'd_dt_crea' :
                 return -1
             elif limit_date and dt_refresh <= limit_date and req_params['tri'] == 'd_dt_maj' :
                 return -1
+
 
             #logging.info("id: {} dt: {}".format(id_annonce, dt_creation))
 
