@@ -1,6 +1,10 @@
 # \#UnToitPourCaramel
-_Un programme inspiré par [VikParuchuri/apartment-finder](https://github.com/VikParuchuri/apartment-finder) 
+_Un programme inspiré par [VikParuchuri/apartment-finder](https://github.com/VikParuchuri/apartment-finder)
 qui récupère les annonces immoblières de Leboncoin, Logic Immo, PaP et SeLoger pour les aggréger dans un tableau Trello._
+
+# le bon coin useful git
+https://github.com/nbeguier/api_lbc
+https://github.com/fabrige/leboncoin/blob/master/post_request_leboncoin.py
 
 ## Pré-requis
 * Python 3
@@ -8,7 +12,7 @@ qui récupère les annonces immoblières de Leboncoin, Logic Immo, PaP et SeLoge
 * [Requests](https://requests.readthedocs.io/en/master/)
 * [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 * [lxml](http://lxml.de/index.html)
-* [py-trello](https://pypi.python.org/pypi/py-trello/0.6.1) 
+* [py-trello](https://pypi.python.org/pypi/py-trello/0.6.1)
     (et [ses dépendances](https://github.com/sarumont/py-trello/blob/master/requirements.txt))
 
 
@@ -60,7 +64,7 @@ TRELLO_API_KEY=ApiKey TRELLO_API_SECRET=ApiSecret python3 `python3 -c "import si
 ```
 
 ### Paramètres de recherche
-De même que les jetons Trello, les paramètres de recherce communs à tous les services sont dans le fichier 
+De même que les jetons Trello, les paramètres de recherce communs à tous les services sont dans le fichier
 `parameters.json` qu'il faut créer avant d'utiliser le programme :
 ```json
 {
@@ -87,13 +91,13 @@ De même que les jetons Trello, les paramètres de recherce communs à tous les 
       "idtypebien": "1,2",
       "getDtCreationMax": 1
     },
-    
+
     "pap": {
         "recherche[produit]": "location",
         "recherche[typesbien][]": "appartement",
         "order": "date-desc"
     },
-    
+
     "logic-immo": {
         "domain": "rentals",
         "order": "date-desc"
@@ -102,19 +106,19 @@ De même que les jetons Trello, les paramètres de recherce communs à tous les 
 
 ```
 Les paramètres sont donc :
- * `ad-providers` spécifie les fournisseurs d'annonces selectionnées : 
+ * `ad-providers` spécifie les fournisseurs d'annonces selectionnées :
     * logic_immo : www.logic-immo.com
     * seloger : www.seloger.com
     * leboncoin : www.leboncoin.com
     * pap : www.pap.fr
  * `cities ` contient les villes, avec leur nom, code postal puis le code INSEE utilisé par SeLoger,
- * `price`, `surface`, `rooms` et `bedrooms`  sont donc respectivement le prix, la surface, le nombre de pièces et le 
+ * `price`, `surface`, `rooms` et `bedrooms`  sont donc respectivement le prix, la surface, le nombre de pièces et le
  nombre de chambres avec les bornes minimales et maximales,
  * `leboncoin` contient les paramètres propres à LeBonCoin :
-   * `c` représente la catégorie des annonces : 
-     * `9` pour les ventes immobilières, 
+   * `c` représente la catégorie des annonces :
+     * `9` pour les ventes immobilières,
      * `10` pour les locations,
-     * `11` pour les collocations. 
+     * `11` pour les collocations.
    * `ret` permet de filtrer le type de bien : _(optionnel)_
      * `1` pour les maisons,
      * `2` pour les appartements,
@@ -127,7 +131,7 @@ Les paramètres sont donc :
    * `furn` permet de choisir si un bien est meublé `1` ou non `2`. _(optionnel)_
    * `q` représente le contenu du champ de recherche. _(optionnel)_
  * `seloger` contient les paramètres propres à SeLoger :
-   * `idtt` représente la catégorie des annonces : 
+   * `idtt` représente la catégorie des annonces :
      * `1` pour les locations,
      * `2` pour les ventes.
    * `idtypebien` représente le type de bien : _(optionnel)_
@@ -154,9 +158,9 @@ Les paramètres sont donc :
      * `acces-handicape`
  * `logic-immo` contient les paramètres propres à Logic Immo :
    * `domain` permet de préciser si l'on cherche un bien en location (`rentals`) ou en vente (`sales`)
-   
+
 Les paramètres restants de chaque service peuvent être facilement obtenus à partir processus d'ingénierie inversée.
-   
+
 
 ## Déploiement sur un Raspberry Pi
 _Testé sur un Raspberry Pi sous Raspbian Jessie._

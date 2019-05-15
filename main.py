@@ -9,6 +9,7 @@ import logging
 # from scrapping_modules import li
 from scrapping_modules import sel
 from scrapping_modules import lbc
+from scrapping_modules import lbc_web
 from scrapping_modules import pap
 
 
@@ -30,4 +31,4 @@ os.chdir(os.path.dirname(script_path))
 with open("data/lbc.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
     #lbc.init_models()
-    lbc.search(parameters)
+    lbc_web.search(parameters)
