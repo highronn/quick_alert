@@ -8,7 +8,7 @@ import json
 import logging
 # from scrapping_modules import li
 from scrapping_modules import sel
-from scrapping_modules import lbc
+#from scrapping_modules import lbc
 from scrapping_modules import lbc_web
 from scrapping_modules import pap
 
