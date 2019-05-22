@@ -116,7 +116,8 @@ def search(parameters):
                         "locationType": "city",
                         "city": "Roubaix",
                         "zipcode": "59100",
-                        "label": "Roubaix (59100)"}
+                        "label": "Roubaix (59100)"
+                    }
                 ],
                 "regions": ["17"]
             },
@@ -132,17 +133,17 @@ def search(parameters):
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
 
     # sending post request and saving response as response object
-    #response = requests.post(url=API_ENDPOINT, data=json.dumps(payload), headers=headers)
-    #json_response = response.json()
+    response = requests.post(url=API_ENDPOINT, data=json.dumps(payload), headers=headers)
+    json_response = response.json()
 
-    with open("data/test/lbc.json") as json_file:
-        json_response = json.load(json_file)
+    #with open("data/test/lbc.json") as json_file:
+    #    json_response = json.load(json_file)
 
     attributes_set = set()
 
     for ad in json_response.get('ads', []):
         id = ad['list_id']
-        print("ad {}".format(id))
+
         fields = {
             'id': id,
             'pub_date': ad['first_publication_date'],
@@ -194,6 +195,13 @@ def search(parameters):
         fields['opt_sub_toplist'] = options['sub_toplist']
 
         fields['has_phone'] = ad['has_phone']
+
+        print("ad {} price {}K surf {} rooms {} city {}-{}".format(
+            id,
+            fields['price']/1000.0, fields['square'],
+            fields.get('rooms', -1),
+            fields['location_city'], fields['location_zipcode']
+        ))
 
         try:
             ad_model = AdLBC.create(**fields)
