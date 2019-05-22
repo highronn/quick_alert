@@ -3,7 +3,10 @@
 
 import requests
 import json
+import time
 from datetime import datetime
+
+from models import dev_db
 
 from peewee import (
     CharField,
@@ -17,6 +20,17 @@ from peewee import (
     Model,
     MySQLDatabase
 )
+
+quick_alert_db = MySQLDatabase(
+    'quickalert',
+    user='quickalert',
+    password='quickalert',
+    host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
+    port=3306
+)
+
+db = dev_db
+#db = quick_alert_db
 
 API_ENDPOINT = "https://api.leboncoin.fr/finder/search"
 API_KEY = 'ba0c2dad52b3ec'
@@ -32,17 +46,17 @@ AD_REQUIRED_FIELDS = {
     'body': TextField(null=True, default=None),
     'ad_type': CharField(null=True, default=None),
     'url': CharField(null=True, default=None),
-    'price': CharField(null=True, default=None),
+    'price': IntegerField(null=True, default=None),
     'price_calendar': CharField(null=True, default=None),
     'nb_images': CharField(null=True, default=None),
     'real_estate_type': CharField(null=True, default=None),
     'custom_ref': CharField(null=True, default=None),
     'ges': CharField(null=True, default=None),
     'lease_type': CharField(null=True, default=None),
-    'rooms': CharField(null=True, default=None),
+    'rooms': IntegerField(null=True, default=None),
     'immo_sell_type': CharField(null=True, default=None),
     'fai_included': CharField(null=True, default=None),
-    'square': CharField(null=True, default=None),
+    'square': IntegerField(null=True, default=None),
     'is_import': CharField(null=True, default=None),
     'pro_rates_link': CharField(null=True, default=None),
     'energy_rate': CharField(null=True, default=None),
@@ -52,8 +66,8 @@ AD_REQUIRED_FIELDS = {
     'location_department_name': CharField(null=True, default=None),
     'location_city': CharField(null=True, default=None),
     'location_zipcode': CharField(null=True, default=None),
-    'location_lat': CharField(null=True, default=None),
-    'location_lng': CharField(null=True, default=None),
+    'location_lat': DecimalField(null=True, default=None),
+    'location_lng': DecimalField(null=True, default=None),
     'location_source': CharField(null=True, default=None),
     'location_provider': CharField(null=True, default=None),
     'location_is_shape': CharField(null=True, default=None),
@@ -71,8 +85,23 @@ AD_REQUIRED_FIELDS = {
     'has_phone': CharField(null=True, default=None),
 }
 
+class AdLBC(Model):
+    class Meta:
+        database = db
+        db_table = 't_lbc_buffer_in'
+        primary_key = False
 
-def search(params):
+
+def init_models():
+    for name, typ in AD_REQUIRED_FIELDS.items():
+        AdLBC._meta.add_field(name, typ)
+
+    AdLBC.create_table(safe=True)
+
+
+def search(parameters):
+    wait_time = max(parameters.get("wait_time", 0), 0) / 1000.0
+
     payload = {
         "filters": {
             "category": {"id": "9"},
@@ -99,6 +128,7 @@ def search(params):
         "limit": 35,
         "limit_alu": 3
     }
+
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
 
     # sending post request and saving response as response object
@@ -164,3 +194,11 @@ def search(params):
         fields['opt_sub_toplist'] = options['sub_toplist']
 
         fields['has_phone'] = ad['has_phone']
+
+        try:
+            ad_model = AdLBC.create(**fields)
+            # ad_model.save()
+        except IntegrityError as error:
+            logging.info("ERROR: " + str(error))
+
+        time.sleep(wait_time)

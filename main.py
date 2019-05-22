@@ -30,5 +30,5 @@ os.chdir(os.path.dirname(script_path))
 
 with open("data/lbc_web.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
-    #lbc_web.init_models()
+    lbc_web.init_models()
     lbc_web.search(parameters)
