@@ -3,8 +3,38 @@ import datetime
 import json
 import time
 import uuid
+import os
+
 from jwt import JWT
+from models import dev_db
+
+from peewee import (
+    CharField,
+    TextField,
+    DateTimeField,
+    BigIntegerField,
+    BooleanField,
+    IntegerField,
+    DecimalField,
+
+    IntegrityError,
+    OperationalError,
+
+    Model,
+
+    MySQLDatabase
+)
+
 from jwt.jwk import OctetJWK
+
+is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+db = dev_db if is_dev_db else MySQLDatabase(
+    'quickalert',
+    user='quickalert',
+    password='quickalert',
+    host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
+    port=3306
+)
 
 # Some constants used to build the base local JWT token
 AUD_CONST = "SeLoger-Mobile-6.0"
@@ -14,7 +44,6 @@ JWT_CONST = "b845ec9ab0834b5fb4f3a876295542887f559c7920224906bf4bc715dd9e56bc"
 
 
 class BaseAds():
-
     def __init__(self):
         self.website = 'None'
 
@@ -268,6 +297,18 @@ class SeLogerAds(BaseAds):
         for i in data['items']:
             ret['id'].append(i['id'])
         return ret
+
+
+def search(params):
+    seloger = SeLogerAds()
+    r = seloger.search(
+        cp=['75014', '75010', '75013', '75018'],
+        min_surf=25,
+        max_price=320000,
+        ad_type='sell',
+        nb_room_min=2
+    )
+    print(len(r.get("items", [])))
 
 #from pprint import pprint
 #

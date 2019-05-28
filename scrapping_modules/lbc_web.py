@@ -110,6 +110,11 @@ def search(parameters):
 
     # sending post request and saving response as response object
     response = requests.post(url=API_ENDPOINT, data=json.dumps(payload), headers=headers)
+
+    if (response.status_code != 200):
+        logging.warning("request failed!")
+        return
+
     json_response = response.json()
 
     #with open("data/test/lbc.json") as json_file:
