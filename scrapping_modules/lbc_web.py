@@ -4,6 +4,8 @@
 import requests
 import json
 import time
+import os
+import logging
 from datetime import datetime
 
 from models import dev_db
@@ -16,21 +18,23 @@ from peewee import (
     BooleanField,
     IntegerField,
     DecimalField,
+
     IntegrityError,
+    OperationalError,
+
     Model,
+
     MySQLDatabase
 )
 
-quick_alert_db = MySQLDatabase(
+is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+db = dev_db if is_dev_db else MySQLDatabase(
     'quickalert',
     user='quickalert',
     password='quickalert',
     host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
     port=3306
 )
-
-db = dev_db
-#db = quick_alert_db
 
 API_ENDPOINT = "https://api.leboncoin.fr/finder/search"
 API_KEY = 'ba0c2dad52b3ec'
@@ -85,6 +89,7 @@ AD_REQUIRED_FIELDS = {
     'has_phone': CharField(null=True, default=None),
 }
 
+
 class AdLBC(Model):
     class Meta:
         database = db
@@ -95,40 +100,13 @@ class AdLBC(Model):
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdLBC._meta.add_field(name, typ)
-
     AdLBC.create_table(safe=True)
 
 
 def search(parameters):
     wait_time = max(parameters.get("wait_time", 0), 0) / 1000.0
 
-    payload = {
-        "filters": {
-            "category": {"id": "9"},
-            "enums": {
-                "ad_type": ["offer"],
-                "real_estate_type": ["1", "5"]
-            },
-            "keywords": {},
-            "location": {
-                "city_zipcodes": [
-                    {
-                        "locationType": "city",
-                        "city": "Roubaix",
-                        "zipcode": "59100",
-                        "label": "Roubaix (59100)"
-                    }
-                ],
-                "regions": ["17"]
-            },
-            "ranges": {
-                "price": {"max": 200000},
-                "square": {"min": 80}
-            }
-        },
-        "limit": 35,
-        "limit_alu": 3
-    }
+    payload = parameters["lbc_web"]
 
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
 

@@ -1,18 +1,29 @@
 {
-    "cities":
-    [
-        ["Nanterre", 92000, 920050],
-        ["Rueil-Malmaison", 92500, 920063]
-    ],
-    "price": [200, 900],
-    "surface": [30, 70],
-    "rooms": [2, 5],
-    "bedrooms": [1, 2],
-
-    "leboncoin": {
-      "c": 10,
-      "f": "p",
-      "ret": [1, 2],
-      "q": "terasse"
-    }
+  "lbc_web": {
+    "filters": {
+      "category": {"id": "9"},
+      "enums": {
+          "ad_type": ["offer"],
+          "real_estate_type": ["1", "5"]
+      },
+      "keywords": {},
+      "location": {
+          "city_zipcodes": [
+              {
+                  "locationType": "city",
+                  "city": "Roubaix",
+                  "zipcode": "59100",
+                  "label": "Roubaix (59100)"
+              }
+          ],
+          "regions": ["17"]
+      },
+      "ranges": {
+          "price": {"max": 200000},
+          "square": {"min": 80}
+      }
+  },
+  "limit": 35,
+  "limit_alu": 3
+  }
 }
