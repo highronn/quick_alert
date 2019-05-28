@@ -3,15 +3,74 @@ import datetime
 import json
 import time
 import uuid
-import jwt
-
-from fradomus.site import BaseAds
+from jwt import JWT
+from jwt.jwk import OctetJWK
 
 # Some constants used to build the base local JWT token
 AUD_CONST = "SeLoger-Mobile-6.0"
 APP_CONST = "63ee714d-a62a-4a27-9fbe-40b7a2c318e4"
 ISS_CONST = "SeLoger-mobile"
 JWT_CONST = "b845ec9ab0834b5fb4f3a876295542887f559c7920224906bf4bc715dd9e56bc"
+
+
+class BaseAds():
+
+    def __init__(self):
+        self.website = 'None'
+
+    def get_ad_details(self, add_id, raw=True):
+        ret = {
+            'source': self.website,
+            'id': None,
+            'price': None,
+            'price_unit': None,
+            'room': None,
+            'surface': None,
+            'surface_unit': None,
+            'city': None,
+            'postal_code': None,
+            'date': datetime.datetime.fromtimestamp(0),
+            'longitude': None,
+            'latitude':  None,
+            'proximity': [],
+            'pictures': [],
+            'description': None,
+            'link': None,
+            'raw': None,
+        }
+        return ret
+
+    def get_location(self, cp):
+        return None
+
+    # Return the number of ads matching a search
+    def count(self, cp, min_surf, max_price, ad_type, nb_room_min):
+        """Return the number of ads matching a search
+        arg 1: the postal code
+        arg 2: the minimal surface
+        arg 3: the maximum rent/price
+        arg 4: type of the add ('rent' -> location, 'sell' -> sell)
+        arg 5: the owner_id of the search (the user making the search)
+        arg 6: nb_room_min, minimum number of rooms
+        """
+        return 0
+
+    def search(self, cp, min_surf, max_price, ad_type, nb_room_min, raw=True):
+        """Recover the ads matching a given search
+        arg 1: the postal code
+        arg 2: the minimal surface
+        arg 3: the maximum rent/price
+        arg 4: type of the add ('rent' -> location, 'sell' -> sell)
+        arg 5: the owner_id of the search (the user making the search)
+        arg 6: nb_room_min, minimum number of rooms
+        arg 7: include the raw data in the return
+        """
+        ret = {
+            'source': self.website,
+            'id': [],
+            'raw': None,
+        }
+        return ret
 
 class SeLogerAds(BaseAds):
 
@@ -50,17 +109,20 @@ class SeLogerAds(BaseAds):
 
     # Generate the local token
     def _gen_local_token(self):
-        encoded_jwt = jwt.encode(
-                {
-                    'iss': ISS_CONST,
-                    'app': APP_CONST,
-                    'iat': int(time.time() - 1),
-                    'jit': str(uuid.uuid1()),
-                    'aud': AUD_CONST,
-                },
-                JWT_CONST,
-                algorithm='HS256',
-                headers={"typ":"JWT","alg":"HS256"},)
+        jwt_ = JWT()
+        params = {
+            'iss': ISS_CONST,
+            'app': APP_CONST,
+            'iat': int(time.time() - 1),
+            'jit': str(uuid.uuid1()),
+            'aud': AUD_CONST,
+            'kty': 'RSA',
+        }
+        encoded_jwt = jwt_.encode(
+                payload=params,
+                key = OctetJWK(bytes(JWT_CONST, 'utf-8')),
+                alg = 'HS256',
+                optional_headers = {"typ":"JWT","alg":"HS256"})
         return encoded_jwt
 
     # Get the authenticated token.
@@ -187,7 +249,7 @@ class SeLogerAds(BaseAds):
                 "maximumPrice": max_price,
                 "minimumLivingArea": min_surf,
                 "realtyTypes": 3,
-                "rooms": range(nb_room_min, 5),
+                "rooms": list(range(nb_room_min, 5)),
                 "sortBy": 0,
                 "transactionType": self._map_type(ad_type)
             }

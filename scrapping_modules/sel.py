@@ -141,6 +141,11 @@ def search(params):
         headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
         req_params['SEARCHpg'] = page_id
         response = requests.get(sel_api_host, params=req_params, headers=headers)
+
+        if response.status_code != 200:
+            print("request failed!")
+            return -1
+
         xml_root = ET.fromstring(response.text)
 
         for adNode in xml_root.findall('annonces/annonce'):
