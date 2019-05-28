@@ -104,8 +104,6 @@ def init_models():
 
 
 def search(parameters):
-    wait_time = max(parameters.get("wait_time", 0), 0) / 1000.0
-
     payload = parameters["lbc_web"]
 
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
@@ -186,5 +184,3 @@ def search(parameters):
             # ad_model.save()
         except IntegrityError as error:
             logging.info("ERROR: " + str(error))
-
-        time.sleep(wait_time)
