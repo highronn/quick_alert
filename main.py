@@ -33,7 +33,7 @@ r = seloger.search(
     ad_type='sell',
     nb_room_min=2
 )
-pprint(r)
+print(r)
 
 #with open("data/pap.json", encoding='utf-8') as parameters_data:
 #    parameters = json.load(parameters_data)
