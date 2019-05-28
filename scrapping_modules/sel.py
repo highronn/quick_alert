@@ -4,10 +4,11 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
 import math
+import os
+import requests
 
 from models import dev_db
 
-import requests
 import xml.etree.ElementTree as ET
 from peewee import (
     CharField,
@@ -25,16 +26,14 @@ from peewee import (
 start_date_c = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
 start_date_m = (datetime.now()+ relativedelta(days=-1)).strftime('%Y-%m-%d 00:00:00')
 
-quick_alert_db = MySQLDatabase(
+is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+db = dev_db if is_dev_db else MySQLDatabase(
     'quickalert',
     user='quickalert',
     password='quickalert',
     host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
     port=3306
 )
-
-#db = dev_db
-db = quick_alert_db
 
 AD_REQUIRED_FIELDS = {
     #"idAnnonce": BigIntegerField(primary_key=True, unique=True),
