@@ -4,6 +4,7 @@ import json
 import time
 import uuid
 import os
+import logging
 
 from jwt import JWT
 from models import dev_db
@@ -101,8 +102,8 @@ class BaseAds():
         }
         return ret
 
-class SeLogerAds(BaseAds):
 
+class SeLogerAds(BaseAds):
     def __init__(self):
         self._base_headers = {
             'User-Agent': 'okhttp/3.11.0',
@@ -308,7 +309,18 @@ def search(params):
         ad_type='sell',
         nb_room_min=2
     )
-    print(len(r.get("items", [])))
+
+    ids = r.get("id", [])
+    items = r["raw"].get("items")
+    id_count = len(ids)
+    item_count = len(items)
+    assert(id_count == item_count)
+
+    logging.info("{} ads received.".format(id_count))
+
+    for id in ids:
+        logging.info("process ad {}".format(id))
+        seloger.get_ad_details(id, raw=True)
 
 #from pprint import pprint
 #
