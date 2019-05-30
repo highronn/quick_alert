@@ -301,17 +301,28 @@ class SeLogerAds(BaseAds):
 
 
 def search(params):
-    seloger = SeLogerAds()
-    r = seloger.search(
-        cp=['75014', '75010', '75013', '75018'],
-        min_surf=25,
-        max_price=320000,
-        ad_type='sell',
-        nb_room_min=2
-    )
+    write_result_in_file = False
+    process_ad_from_file = True
+
+    if process_ad_from_file:
+        with open('data/sel2/request.json', 'r') as req_file:
+            r = json.loads(req_file.read())
+    else:
+        seloger = SeLogerAds()
+        r = seloger.search(
+            cp=['75014', '75010', '75013', '75018'],
+            min_surf=25,
+            max_price=320000,
+            ad_type='sell',
+            nb_room_min=2
+        )
+
+        if write_result_in_file:
+            with open("data/sel2/request.json", "w") as req_file:
+                req_file.write(json.dumps(r))
 
     ids = r.get("id", [])
-    items = r["raw"].get("items")
+    items = r.get("raw", {}).get("items")
     id_count = len(ids)
     item_count = len(items)
     assert(id_count == item_count)
@@ -320,7 +331,16 @@ def search(params):
 
     for id in ids:
         logging.info("process ad {}".format(id))
-        seloger.get_ad_details(id, raw=True)
+        ad_filename = "data/sel2/{}.json".format(id)
+        if process_ad_from_file:
+            with open(ad_filename, 'r') as ad_file:
+                ad = json.loads(ad_file.read())
+        else:
+            ad = seloger.get_ad_details(id, raw=True)['raw']
+
+            if write_result_in_file:
+                with open(ad_filename, 'w') as ad_file:
+                    ad_file.write(json.dumps(ad))
 
 #from pprint import pprint
 #
