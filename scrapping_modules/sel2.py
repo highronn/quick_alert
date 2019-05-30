@@ -43,6 +43,20 @@ APP_CONST = "63ee714d-a62a-4a27-9fbe-40b7a2c318e4"
 ISS_CONST = "SeLoger-mobile"
 JWT_CONST = "b845ec9ab0834b5fb4f3a876295542887f559c7920224906bf4bc715dd9e56bc"
 
+AD_REQUIRED_FIELDS = {
+    "id": BigIntegerField(null=False),
+    "date": DateTimeField(null=False, default=datetime.datetime.now),
+    "price": IntegerField(null=True, default=None),
+    "rooms": IntegerField(null=True, default=None),
+    "surface": IntegerField(null=True, default=None),
+    "city": CharField(null=True, default=None),
+    "zipcode": CharField(null=True, default=None),
+    'long': DecimalField(null=True, default=None),
+    'lat': DecimalField(null=True, default=None),
+    'description': TextField(null=True, default=None),
+    'link': CharField(null=True, default=None),
+}
+
 
 class BaseAds():
     def __init__(self):
@@ -300,27 +314,46 @@ class SeLogerAds(BaseAds):
         return ret
 
 
+class AdSeLoger(Model):
+    class Meta:
+        database = db
+        db_table = 't_sel2_buffer_in'
+        primary_key = False
+
+
+def init_models():
+    for name, typ in AD_REQUIRED_FIELDS.items():
+        AdSeLoger._meta.add_field(name, typ)
+
+    AdSeLoger.create_table(safe=True)
+
+
 def search(params):
     write_result_in_file = False
-    process_ad_from_file = True
+    process_ad_from_file = False
 
     if process_ad_from_file:
         with open('data/sel2/request.json', 'r') as req_file:
             r = json.loads(req_file.read())
     else:
+        sel2_params = params['sel2']
         seloger = SeLogerAds()
-        r = seloger.search(
-            cp=['75014', '75010', '75013', '75018'],
-            min_surf=25,
-            max_price=320000,
-            ad_type='sell',
-            nb_room_min=2
-        )
+        #r = seloger.search(
+        #    cp=['75014', '75010', '75013', '75018'],
+        #    min_surf=25,
+        #    max_price=320000,
+        #    ad_type='sell',
+        #    nb_room_min=2
+        #)
+        r = seloger.search(**sel2_params)
 
+        # DEBUG
         if write_result_in_file:
             with open("data/sel2/request.json", "w") as req_file:
                 req_file.write(json.dumps(r))
 
+    # check that data sent are coherent
+    # should have the same count of element in r['id'] and r['raw']['items']
     ids = r.get("id", [])
     items = r.get("raw", {}).get("items")
     id_count = len(ids)
@@ -334,13 +367,34 @@ def search(params):
         ad_filename = "data/sel2/{}.json".format(id)
         if process_ad_from_file:
             with open(ad_filename, 'r') as ad_file:
-                ad = json.loads(ad_file.read())
+                data = json.loads(ad_file.read())
         else:
-            ad = seloger.get_ad_details(id, raw=True)['raw']
+            data = seloger.get_ad_details(id, raw=True)['raw']
 
             if write_result_in_file:
                 with open(ad_filename, 'w') as ad_file:
-                    ad_file.write(json.dumps(ad))
+                    ad_file.write(json.dumps(data))
+
+        # process ad
+        fields = {
+            'id': id,
+            'date': datetime.datetime.strptime(data['lastModified'], '%Y-%m-%dT%H:%M:%S'),
+            'price': data['price'],
+            'rooms': data['rooms'],
+            'surface': data['livingArea'],
+            'city': data['city'],
+            'zipcode': data['zipCode'],
+            'long': data['coordinates']['longitude'],
+            'lat': data['coordinates']['latitude'],
+            'description': data['description'],
+            'link': data['permalink'],
+        }
+
+        try:
+            ad_model = AdSeLoger.create(**fields)
+            # ad_model.save()
+        except IntegrityError as error:
+            logging.info("ERROR: " + str(error))
 
 #from pprint import pprint
 #

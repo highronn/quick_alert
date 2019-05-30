@@ -27,7 +27,7 @@ os.chdir(os.path.dirname(script_path))
 
 with open("data/sel2.json", encoding='utf-8') as parameters_data:
     parameters = json.load(parameters_data)
-    #sel2.init_models()
+    sel2.init_models()
     sel2.search(parameters)
 
 #with open("data/pap.json", encoding='utf-8') as parameters_data:
