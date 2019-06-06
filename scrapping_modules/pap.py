@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
+from dateutil.relativedelta import relativedelta
 import requests
 import time
 from urllib.parse import unquote, urlencode
 from datetime import datetime
 import sys 
 from models import dev_db
+
+from fake_useragent import UserAgent
+import random
+
+
 from peewee import (
     CharField,
     IntegerField,
@@ -30,11 +37,13 @@ db = quick_alert_db = MySQLDatabase(
     port=3306
 )
 
+start_date_script = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+
 #db = dev_db
 db = quick_alert_db
 
 AD_REQUIRED_FIELDS = {
-    "id": BigIntegerField(null=False),
+    "id": IntegerField(null=False),
     "dateinsert": DateTimeField(null=False, default=datetime.now),
     "produit": CharField(null=True, default=None),
     "typebien": CharField(null=True, default=None),
@@ -65,24 +74,57 @@ AD_REQUIRED_FIELDS = {
 class AdPap(Model):
     class Meta:
         database = db
-        db_table = 't_pap_buffer_in'
+        db_table = 't_pap_ads_buffer_in'
 
+class AdBatchInfo(Model):
+    class Meta:
+        database = db
+        db_table = 't_batch_info_2'
 
-#class AdPapConf(Model):
-#    class Meta:
-#        database = db
-#        db_table = 't_pap_script_info'
-#
-#    id = CharField(unique=True, primary_key=True)
-#    limit_date = DateTimeField(null=False)
+    id = CharField(unique=True, primary_key=True)
+    limit_date = DateTimeField(null=False)       
+
+class AdBatchName(Model):
+    class Meta:
+        database = db
+        db_table = 'v_batch_run_pap'
+   
+    id = CharField(unique=True, primary_key=True)
+    cp = DateTimeField(null=False)       
+    ad_type = CharField(null=False)        
+
+class v_peewee(Model):
+    class Meta:
+        database = db
+        db_table = 'v_peewee_2'
+
+    id_ad = IntegerField(unique=True, primary_key=True)
+    id_origin = IntegerField(null=False)
+    check_expiration = IntegerField(null=False)
+    url = TextField(null=False)
+    
+class t_peewee(Model):
+    class Meta:
+        database = db
+        db_table = 't_all_ads_flag'
+
+    id_ad = IntegerField(unique=True, primary_key=True)
+    id_origin = IntegerField(null=False)
+    check_expiration = IntegerField(null=False)
+    url = TextField(null=False)
+
+ua = UserAgent()
 
 header = {
     'X-Device-Gsf': '36049adaf18ade77',
-    'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)',
+    'User-Agent': ua.random,
     'Connection': 'Keep-Alive',
     'Accept-Encoding': 'gzip'
 }
-
+#########################################################################################################################
+#########################################################################################################################
+#########################################################################################################################
+#########################################################################################################################
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdPap._meta.add_field(name, typ)
@@ -90,11 +132,44 @@ def init_models():
     AdPap.create_table(safe=True)
     
     #AdPapConf.create_table(safe=True)
-
-
+#########################################################################################################################
+#########################################################################################################################
+#########################################################################################################################
+#########################################################################################################################
 def search(parameters):
+
+
+    
+
+    v_timer = 5
+    v_wait = 0
+    
+    wait_time = 1.5    
+    start_date_script = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+
+    try : 
+        parameters['config_id'] = AdBatchName.get().id
+        parameters["cities"][0][1] = AdBatchName.get().cp
+        parameters["pap"]["recherche[produit]"] = AdBatchName.get().ad_type
+        config_id = parameters['config_id']
+    except Exception:
+        print("No Batch to run")
+        return -1
+
+    try:
+        config = AdBatchInfo.get(AdBatchInfo.id == parameters['config_id'])
+        limit_date = config.limit_date.strftime('%Y-%m-%d %H:%M:%S')
+        print("{} - using limit date : {}".format(config_id,limit_date))
+        
+    except Exception:
+        print("{} - no config found for. no limit date will be used".format(config_id))
+        limit_date = None
+    
+    
+    
     # Préparation des paramètres de la requête
-    payload = {
+    payload = {}
+    """ payload = {
         'recherche[prix][min]': parameters['price'][0],  # Loyer min
         'recherche[prix][max]': parameters['price'][1],  # Loyer max
         'recherche[surface][min]': parameters['surface'][0],  # Surface min
@@ -103,91 +178,69 @@ def search(parameters):
         'recherche[nb_chambres][min]': parameters['bedrooms'][0],  # Chambres min
         #'size': 200,
         #'page': 1
-    }
-
-    #wait_time = max(parameters.get("wait_time", 0), 1) / 1000.0
-    wait_time = 1.5
-    #wait_time = 0
-
+    } """
     # Insertion des paramètres propres à PAP
     payload.update(parameters['pap'])
-
     params = urlencode(payload)
-
+        
     # Ajout des villes
     for city in parameters['cities']:
         params += "&recherche[geo][ids][]=%s" % place_search(city[1])
-
-
-
-####################################################################
-    #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header)
-    #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
-    #data = request.json()  
-    #print(data)
-####################################################################
-
-    v_timer = 0
-    v_wait = 5
     
-    print("Retrieve Ads")
-
+    #print (parameters)
+####################################################################
+    
+    #print("Retrieve Ads")
     for i in range(0,10):
         try:
-            request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=3)
+            request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=10)
             #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
-            data = request.json()            
+            print(request.url)
+            data = request.json()
+            time.sleep(wait_time)      
+            #print(data)      
         except requests.exceptions.ConnectionError as r:
-            r.status_code = "Connection refused" 
+            r.status_code = "      {} - Connection refused"             
+            print ("      requests.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
             time.sleep(v_timer)
-            v_timer += v_wait            
-            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            v_timer += v_wait 
             continue
         except requests.exceptions.ReadTimeout as r:
-            r.status_code = "Connection Timeout" 
+            r.status_code = "Connection Timeout"            
+            print ("      requests.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
             time.sleep(v_timer)
-            v_timer += v_wait            
-            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            v_timer += v_wait 
             continue
         else:
             break
     else:
         return
-            
-####################################################################
-    
 
     with open("output.json", "w+") as output:
         output.write(str(data))
 
-    print("Retrieve Ad details")
+    #print("Retrieve Ad details")
     for it, ad in enumerate(data['_embedded'].get('annonce', [])):
         ad_id = ad.get('id')
-####################################################################
-        #_request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
-        #_data = _request.json()
-####################################################################
-        v_timer = 0
-        v_wait = 5
-    
-        
 
         for i in range(0,10):
             try:
                 _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header, timeout=3)
                 #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
                 _data = _request.json()
+                time.sleep(wait_time)
             except requests.exceptions.ConnectionError as r:
-                r.status_code = "Connection refused" 
+                r.status_code = "Connection refused"             
+                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
-                v_timer += v_wait            
-                print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+                v_timer += v_wait  
                 continue
+
             except requests.exceptions.ReadTimeout as r:
-                r.status_code = "Connection Timeout" 
+                r.status_code = "Connection Timeout"             
+                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
-                v_timer += v_wait            
-                print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+                v_timer += v_wait          
                 continue
             else:
                 break
@@ -195,8 +248,6 @@ def search(parameters):
         else:
             return   
 ####################################################################
-
-            
 
         #photos = list()
         #if ad.get("nb_photos") > 0:
@@ -233,13 +284,16 @@ def search(parameters):
             link = ad["_links"]['desktop']['href'],
             texte = str(_data.get("texte")),
         )
+        
+        date_classement = ad_fields["date_classement"].strftime('%Y-%m-%d %H:%M:%S')
+        
+        #print(date_classement)
+        #print(limit_date)
+        if limit_date and date_classement <= limit_date :
+            print("      limit date reached")
+            break
 
-
-####################################################################
-        v_timer = 0
-        v_wait = 5
-        #print("[\n{}]\n".format(",\n".join("{}: {}".format(k,v) for k,v in ad_fields.items())))
-        print("{} Import ADS : {}  {} sec ...".format(it, ad_id, wait_time))
+        print("      {} Import ADS : {} - {} - {} sec ...".format(it, ad_id, date_classement, wait_time))
         for i in range(0,2):
             try:
                 #db.connect
@@ -247,7 +301,7 @@ def search(parameters):
                 # ad_model.save()
                 #db.close
             except IntegrityError as error:
-                logging.info("ERROR: " + str(error))
+                logging.info("      Error: " + str(error))
                 return
             except:
                 #logging.info("ERROR: Database error connection")
@@ -255,46 +309,104 @@ def search(parameters):
                 v_timer += v_wait   
                 db.close     
                 init_models()    
-                print ("DB Error - Try again - Waiting : {} sec(s)".format(v_timer))            
+                print ("      Database error - waiting : {} sec(s)".format(v_timer))            
                 return 
             else:
                 break
-                    
-####################################################################
-        time.sleep(wait_time)
+   
+    AdBatchInfo.update( limit_date=start_date_script).where(AdBatchInfo.id == config_id).execute()
+    print("      {} - new limit date to '{}'".format(config_id, start_date_script))
+    print("Change PROXY")
+    #time.sleep(20)
 
+#########################################################################################################################
 
 def place_search(zipcode):
     """Retourne l'identifiant PAP pour un code postal donné"""
-
     payload = {
         "recherche[cible]": "pap-recherche-ac",
         "recherche[q]": zipcode
     }
     
-    v_timer = 0
-    v_wait = 5
+    v_timer = 5
+    v_wait = 0
     
-    print("Retrieve Ids of postal code : {}".format(zipcode))
+    #print("Retrieve Ids of postal code : {}".format(zipcode))
 
     for i in range(0,10):
         try:
             request = requests.get("https://ws.pap.fr/gis/places", params=payload, headers=header, timeout=3)
             #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
             json = request.json()['_embedded']['place'][0]['id']
+            time.sleep(1.5)
             return json
         except requests.exceptions.ConnectionError as r:
-            r.status_code = "Connection refused" 
+            r.status_code = "Connection refused"             
+            print ("      place_search - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
             time.sleep(v_timer)
             v_timer += v_wait            
-            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
             continue
         except requests.exceptions.ReadTimeout as r:
-            r.status_code = "Connection Timeout" 
+            r.status_code = "Connection Timeout"             
+            print ("      place_search - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
             time.sleep(v_timer)
-            v_timer += v_wait                     
-            print ("{} - Try again - Waiting : {} sec(s)".format(r.status_code,v_timer))            
+            v_timer += v_wait      
             continue
         else:
-            break 
+            break
+
+#########################################################################################################################
+
+def get_expiration():
+    """Vérifie la validité des annonces seloger"""       
     
+    v_delay = 5
+    v_wait_e = 0
+    v_wait_r = 0  
+    
+    for a in range(1,40):
+        config = v_peewee.get()
+        init_url = config.url
+        for i in range(0,10):
+            try:
+                request = requests.get(init_url,  headers=header, timeout=3) 
+                if  request.url == init_url:
+                    t_peewee.update(check_expiration = t_peewee.check_expiration + 3).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Valide".format(a,config.id_ad)) 
+                    time.sleep(v_wait_r)
+
+                elif "expiree" in  request.url :
+                    t_peewee.update(check_expiration=-4).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Expirée".format(a,config.id_ad)) 
+                    time.sleep(v_wait_r)
+
+                elif "erreur-temporaire" in  request.url :
+                    t_peewee.update(check_expiration=-1).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Erreur-temporaire".format(a,config.id_ad)) 
+                    print("{} - URL = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
+                    time.sleep(v_wait_r)
+                    sys.exit()
+
+                else:
+                    t_peewee.update(check_expiration=-3).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Invalide".format(a,config.id_ad)) 
+                    print("{} - URL = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
+                    time.sleep(v_wait_r)
+                break
+
+            except requests.exceptions.ConnectionError as r:
+                r.status_code = "Connection refused" 
+                time.sleep(v_wait_e)
+                v_wait_e += v_delay            
+                print ("      {} - Try again - Waiting : {} sec(s)".format(r.status_code,v_wait_e))            
+                continue
+
+            except requests.exceptions.ReadTimeout as r:
+                r.status_code = "Connection Timeout" 
+                time.sleep(v_wait_e)
+                v_wait_e += v_delay                     
+                print ("      {} - Try again - Waiting : {} sec(s)".format(r.status_code,v_wait_e))            
+                continue
+            
+            
+            

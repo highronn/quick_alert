@@ -105,7 +105,7 @@ class AdSeLoger(Model):
 class AdSeLogerConf(Model):
     class Meta:
         database = db
-        db_table = 't_batch_info'
+        db_table = 't_sel_script_info'
 
     id = CharField(unique=True, primary_key=True)
     limit_date = DateTimeField(null=False)
@@ -136,14 +136,16 @@ def search(params):
             batch_id,
             page_id
         ))
+        
 
     def read_sel_ads(req_params, page_id, limit_date, db_insert=True):
         sel_api_host = "http://ws.seloger.com/search.xml"
         headers = {'user-agent': 'Dalvik/2.1.0 (Linux; U; Android 6.0.1; D5803 Build/MOB30M.Z1)'}
         req_params['SEARCHpg'] = page_id
+        
         ##############################################################################################""
-        response = requests.get(sel_api_host, params=req_params, headers=headers)
-        xml_root = ET.fromstring(response.text)
+        #response = requests.get(sel_api_host, params=req_params, headers=headers)
+        #xml_root = ET.fromstring(response.text)
         ##############################################################################################""
         v_timer = 0
         v_wait = 5
@@ -192,12 +194,12 @@ def search(params):
             #        dt_creation
             #    ))
 
-
+            """ 
             if limit_date and dt_creation <= limit_date and req_params['tri'] == 'd_dt_crea' :
                 return -1
             elif limit_date and dt_refresh <= limit_date and req_params['tri'] == 'd_dt_maj' :
                 return -1
-
+            """
 
             #logging.info("id: {} dt: {}".format(id_annonce, dt_creation))
 
@@ -231,6 +233,8 @@ def search(params):
         logging.warning("'SEARCHpg' param will be ignored. Use 'start_page' instead")
 
     logging.info("start page: {}".format(page_id))
+    logging.info("Retrieve ad from : {} - {} - {}".format( req_params['cp'],req_params['tri'],req_params['idtt']))
+    #print ("Retrieve ad from : {},{},{}".format( req_params['cp'],req_params['tri'],req_params['idtt']))
 
     # max pages
     max_pages = params.get("max_pages", math.inf)
@@ -267,7 +271,7 @@ def search(params):
         batch_id += 1
         log_batch_info(batch_id, page_id)
         page_id = read_sel_ads(req_params, page_id, limit_date, db_insert=use_db_insertion)
-
+    """ 
     if use_limit_date and req_params['tri'] == 'd_dt_crea':
         new_limit_date = start_date_c
         AdSeLogerConf.replace(id=config_id, limit_date=new_limit_date).execute()
@@ -276,5 +280,5 @@ def search(params):
         new_limit_date = start_date_m
         AdSeLogerConf.replace(id=config_id, limit_date=new_limit_date).execute()
         logging.info("set '{}' config new limit date for d_dt_maj to '{}'".format(config_id, new_limit_date))
-
+    """
     logging.info("{} ads processed.".format(len(AD_IDS)))
