@@ -78,11 +78,12 @@ API_PARAMs:
 """
 
 AD_REQUIRED_FIELDS = {
-    'id': BigIntegerField(null=False),
-    'pub_date': DateTimeField(null=False, default=datetime.now),
-    'exp_date': DateTimeField(null=True),
+    'list_id': IntegerField(null=False),
+    'first_publication_date': DateTimeField(null=False, default=datetime.now),
+    'expiration_date': DateTimeField(null=True),
+    'index_date': DateTimeField(null=True),
     'status': CharField(null=True, default=None),
-    'category_id': CharField(null=True, default=None),
+    'category_id': IntegerField(null=True, default=None),
     'category_name': CharField(null=True, default=None),
     'subject': CharField(null=True, default=None),
     'body': TextField(null=True, default=None),
@@ -90,8 +91,8 @@ AD_REQUIRED_FIELDS = {
     'url': CharField(null=True, default=None),
     'price': IntegerField(null=True, default=None),
     'price_calendar': CharField(null=True, default=None),
-    'nb_images': CharField(null=True, default=None),
-    'real_estate_type': CharField(null=True, default=None),
+    'nb_images': IntegerField(null=True, default=None),
+    'real_estate_type': IntegerField(null=True, default=None),
     'custom_ref': CharField(null=True, default=None),
     'ges': CharField(null=True, default=None),
     'lease_type': CharField(null=True, default=None),
@@ -99,32 +100,35 @@ AD_REQUIRED_FIELDS = {
     'immo_sell_type': CharField(null=True, default=None),
     'fai_included': CharField(null=True, default=None),
     'square': IntegerField(null=True, default=None),
-    'is_import': CharField(null=True, default=None),
+    'is_import': BooleanField(null=True, default=None),
     'pro_rates_link': CharField(null=True, default=None),
     'energy_rate': CharField(null=True, default=None),
-    'location_region_id': CharField(null=True, default=None),
+    'location_region_id': IntegerField(null=True, default=None),
     'location_region_name': CharField(null=True, default=None),
-    'location_department_id': CharField(null=True, default=None),
+    'location_department_id': IntegerField(null=True, default=None),
     'location_department_name': CharField(null=True, default=None),
+    'location_city_label': CharField(null=True, default=None),
     'location_city': CharField(null=True, default=None),
     'location_zipcode': CharField(null=True, default=None),
     'location_lat': DecimalField(null=True, default=None),
     'location_lng': DecimalField(null=True, default=None),
     'location_source': CharField(null=True, default=None),
     'location_provider': CharField(null=True, default=None),
-    'location_is_shape': CharField(null=True, default=None),
-    'owner_store_id': CharField(null=True, default=None),
+    'location_is_shape': BooleanField(null=True, default=None),
+    'owner_store_id': IntegerField(null=True, default=None),
     'owner_user_id': CharField(null=True, default=None),
     'owner_type': CharField(null=True, default=None),
     'owner_name': CharField(null=True, default=None),
-    'owner_no_salesmen': CharField(null=True, default=None),
-    'opt_has_option': CharField(null=True, default=None),
-    'opt_booster': CharField(null=True, default=None),
-    'opt_photosup': CharField(null=True, default=None),
-    'opt_urgent': CharField(null=True, default=None),
-    'opt_gallery': CharField(null=True, default=None),
-    'opt_sub_toplist': CharField(null=True, default=None),
-    'has_phone': CharField(null=True, default=None),
+    'owner_no_salesmen': BooleanField(null=True, default=None),
+    #'owner_pro_rates_link': CharField(null=True, default=None),
+    'owner_siren': CharField(null=True, default=None),
+    'opt_has_option': BooleanField(null=True, default=None),
+    'opt_booster': BooleanField(null=True, default=None),
+    'opt_photosup': BooleanField(null=True, default=None),
+    'opt_urgent': BooleanField(null=True, default=None),
+    'opt_gallery': BooleanField(null=True, default=None),
+    'opt_sub_toplist': BooleanField(null=True, default=None),
+    'has_phone': BooleanField(null=True, default=None),
 }
 
 
@@ -164,9 +168,10 @@ def search(parameters):
         id = ad['list_id']
 
         fields = {
-            'id': id,
-            'pub_date': ad['first_publication_date'],
-            'exp_date' : ad.get('expiration_date'),
+            'list_id': id,
+            'first_publication_date': ad['first_publication_date'],
+            'expiration_date' : ad.get('expiration_date'),
+            'index_date' : ad.get('index_date'),
             'status' : ad['status'],
             'category_id' : ad['category_id'],
             'category_name' : ad['category_name'],
@@ -191,6 +196,7 @@ def search(parameters):
         fields['location_department_id'] = location['department_id']
         fields['location_department_name'] = location['department_name']
         fields['location_city'] = location['city']
+        fields['location_department_name'] = location.get('department_name', None)
         fields['location_zipcode'] = location['zipcode']
         fields['location_lat'] = location['lat']
         fields['location_lng'] = location['lng']
@@ -204,6 +210,8 @@ def search(parameters):
         fields['owner_type'] = owner['type']
         fields['owner_name'] = owner['name']
         fields['owner_no_salesmen'] = owner['no_salesmen']
+        fields['owner_siren'] = owner.get('siren', None)
+        #fields['owner_pro_rates_link'] = owner.get('owner_pro_rates_link' , None)
 
         options = ad['options']
         fields['opt_has_option'] = options['has_option']
