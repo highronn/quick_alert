@@ -34,6 +34,8 @@ db = quick_alert_db = MySQLDatabase(
 #db = dev_db
 db = quick_alert_db
 
+API_ENDPOINT = 'https://ws.pap.fr/immobilier/annonces'
+
 AD_REQUIRED_FIELDS = {
     "id": BigIntegerField(null=False),
     "dateinsert": DateTimeField(null=False, default=datetime.now),
@@ -116,7 +118,7 @@ def search(parameters):
     for city in parameters['cities']:
         params += "&recherche[geo][ids][]=%s" % place_search(city[1])
 
-    request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header)
+    request = requests.get("{}".format(API_ENDPOINT), params=unquote(params), headers=header)
     print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
     data = request.json()
 
@@ -128,7 +130,7 @@ def search(parameters):
     for it, ad in enumerate(data['_embedded'].get('annonce', [])):
         ad_id = ad.get('id')
 
-        _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header)
+        _request = requests.get("{}/{}".format(API_ENDPOINT, ad_id), headers=header)
         _data = _request.json()
 
         #photos = list()
