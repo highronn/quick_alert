@@ -39,6 +39,44 @@ db = dev_db if is_dev_db else MySQLDatabase(
 API_ENDPOINT = "https://api.leboncoin.fr/finder/search"
 API_KEY = 'ba0c2dad52b3ec'
 
+"""
+API_PARAMs:
+{
+    "filters": {
+        "category": {
+            "id": "9"
+        },
+        "enums": {
+            "ad_type": ["offer"],
+            "real_estate_type": ["1", "5"]
+        },
+        "location": {
+            "city_zipcodes": [],
+            "regions": ["17"]
+        },
+        "ranges": {
+            "price": {"max": 200000},
+            "square": {"min": 80}
+        }
+        "keywords": {
+            "text": "kw1 kw2 .. kwN"
+        },
+        'owner': {
+            'store_id': 'TODO: check how to get it',
+        }
+    },
+
+    'context': 'default',
+
+    'sort_by': 'date',
+    'sort_order': 'desc',
+
+    'offset': 0,
+    'limit': 5,
+    "limit_alu": 3
+}
+"""
+
 AD_REQUIRED_FIELDS = {
     'id': BigIntegerField(null=False),
     'pub_date': DateTimeField(null=False, default=datetime.now),
