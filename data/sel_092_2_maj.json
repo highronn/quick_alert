@@ -1,0 +1,15 @@
+{
+    "config_id": "sel_092_2_maj",
+
+    "start_page": 0,
+    "max_pages": 0,
+    "only_new_ads": true,
+
+    "request": {
+        "cp": [92],
+        "tri": "d_dt_maj",
+        "idtt": "2",
+        "idtypebien": "1,2",
+        "getDtCreationMax": 1
+    }
+}

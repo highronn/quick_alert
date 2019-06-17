@@ -1,0 +1,24 @@
+{
+    "config_id": "lbc_75001_rent",
+    "lbc_web": {
+        "filters": {
+        "category": {"id": "10"},
+        "enums": {
+            "ad_type": ["offer"]
+        },
+        "location": {
+            "city_zipcodes": [
+                {
+                    "zipcode": "75001"
+                }
+            ],
+            "regions": ["12"]
+        },
+        "ranges": {
+            "price": {"min": 0},
+            "square": {"min": 0}
+        }
+    },
+    "limit": 1000
+    }
+}

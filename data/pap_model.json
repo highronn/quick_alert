@@ -1,0 +1,16 @@
+{
+    "config_id": "XXXXXXX",
+    "cities":
+    [
+        ["Ville", "XXXXXXX"]
+    ],
+    "price": [0, 0],
+    "surface": [0, 0],
+    "rooms": [0, 0],
+    "bedrooms": [0, 0],
+
+    "pap": {
+        "recherche[produit]": "XXXXXXX",
+        "order": "date-desc"
+    }
+}
