@@ -10,7 +10,7 @@ from datetime import datetime
 from models import dev_db
 from dateutil.relativedelta import relativedelta
 from urllib.parse import unquote, urlencode
-import sys 
+import sys
 from fake_useragent import UserAgent
 import random
 from peewee import (
@@ -68,7 +68,7 @@ AD_REQUIRED_FIELDS = {
     'owner_name': CharField(null=True, default=None),
     'owner_no_salesmen': BooleanField(null=True, default=None),
     'owner_siren': CharField(null=True, default=None),
-    #'owner_pro_rates_link': CharField(null=True, default=None), 
+    #'owner_pro_rates_link': CharField(null=True, default=None),
     'opt_has_option': BooleanField(null=True, default=None),
     'opt_booster': BooleanField(null=True, default=None),
     'opt_photosup': BooleanField(null=True, default=None),
@@ -108,7 +108,7 @@ class AdLBC(Model):
         database = db
         db_table = 't_lbc_ads_buffer_in'
         primary_key = False
-        
+
 
 class AdBatchInfo(Model):
     class Meta:
@@ -116,16 +116,16 @@ class AdBatchInfo(Model):
         db_table = 't_batch_info_2'
 
     id = CharField(unique=True, primary_key=True)
-    limit_date = DateTimeField(null=False)       
+    limit_date = DateTimeField(null=False)
 
 class AdBatchName(Model):
     class Meta:
         database = db
         db_table = 'v_batch_run_lbc'
-   
+
     id = CharField(unique=True, primary_key=True)
-    cp = DateTimeField(null=False)       
-    ad_type = CharField(null=False)         
+    cp = DateTimeField(null=False)
+    ad_type = CharField(null=False)
 
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
@@ -134,36 +134,36 @@ def init_models():
 
 
 def search(parameters):
-    
-    try : 
+
+    try :
         parameters['config_id'] = AdBatchName.get().id
     except Exception:
         print("No Batch to run")
         return -1
-    
+
     parameters["lbc_web"]["filters"]['location']["city_zipcodes"][0]["zipcode"] = AdBatchName.get().cp
     parameters["lbc_web"]["filters"]["category"]["id"] = AdBatchName.get().ad_type
     payload = parameters["lbc_web"]
     config_id = parameters['config_id']
     start_date_script = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
 
-    
+
 
     #print(parameters['config_id'])
     #print(parameters["lbc_web"]["filters"]['location']["city_zipcodes"][0]["zipcode"])
     #print(get_batch_name)
     #print ( payload)
-    
+
     ####################################################################
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
-    
-    
+
+
     try:
         config = AdBatchInfo.get(AdBatchInfo.id == config_id)
         limit_date = config.limit_date.strftime('%Y-%m-%d %H:%M:%S')
         print("{} - using limit date : {}".format(config_id,limit_date))
-        
-        
+
+
     except Exception:
         print("{} - no config found for. no limit date will be used".format(config_id))
         limit_date = None
@@ -174,9 +174,9 @@ def search(parameters):
     url_response = response.url
 
     #with open("data/test/lbc.json") as json_file:
-    #    json_response = json.load(json_file) 
+    #    json_response = json.load(json_file)
     #print(json_response)
-    
+
     attributes_set = set()
 
     for ad in json_response.get('ads', []):
@@ -186,7 +186,7 @@ def search(parameters):
             'list_id': list_id,
             'first_publication_date': ad['first_publication_date'],
             'expiration_date' : ad.get('expiration_date'),
-            'index_date' : ad.get('index_date'),            
+            'index_date' : ad.get('index_date'),
             'status' : ad['status'],
             'category_id' : ad['category_id'],
             'category_name' : ad['category_name'],
@@ -209,9 +209,9 @@ def search(parameters):
         fields['location_region_id'] = location['region_id']
         fields['location_region_name'] = location['region_name']
         fields['location_department_id'] = location['department_id']
-        fields['location_department_name'] = location.get('department_name' , None)        
+        fields['location_department_name'] = location.get('department_name' , None)
         fields['location_city_label'] = location['city_label']
-        fields['location_city'] = location.get('city' , None) 
+        fields['location_city'] = location.get('city' , None)
         fields['location_zipcode'] = location['zipcode']
         fields['location_lat'] = location['lat']
         fields['location_lng'] = location['lng']
@@ -223,9 +223,9 @@ def search(parameters):
         fields['owner_store_id'] = owner['store_id']
         fields['owner_user_id'] = owner['user_id']
         fields['owner_type'] = owner['type']
-        fields['owner_name'] = owner.get('name' , None)  
+        fields['owner_name'] = owner.get('name' , None)
         fields['owner_no_salesmen'] = owner['no_salesmen']
-        fields['owner_siren'] = owner.get('siren' , None)        
+        fields['owner_siren'] = owner.get('siren' , None)
         #fields['owner_pro_rates_link'] = owner.get('owner_pro_rates_link' , None)
 
         options = ad['options']
