@@ -75,6 +75,9 @@ API_PARAMs:
     'limit': 5,
     "limit_alu": 3
 }
+
+[regions]
+12: ilde-de-france
 """
 
 AD_REQUIRED_FIELDS = {
@@ -135,19 +138,51 @@ AD_REQUIRED_FIELDS = {
 class AdLBC(Model):
     class Meta:
         database = db
-        db_table = 't_lbc_buffer_in'
+        db_table = 't_lbc_ads_buffer_in'
         primary_key = False
+
+class AdBatchInfo(Model):
+    class Meta:
+        database = db
+        db_table = 't_batch_info_2'
+
+    id = CharField(unique=True, primary_key=True)
+    limit_date = DateTimeField(null=False)
+
+class AdBatchName(Model):
+    class Meta:
+        database = db
+        db_table = 'v_batch_run_lbc'
+
+    id = CharField(unique=True, primary_key=True)
+    cp = DateTimeField(null=False)
+    ad_type = CharField(null=False)
 
 
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdLBC._meta.add_field(name, typ)
     AdLBC.create_table(safe=True)
+    AdBatchInfo.create_table(safe=True)
+    AdBatchName.create_table(safe=True)
 
 
 def search(parameters):
-    payload = parameters["lbc_web"]
+    try:
+        config_id = AdBatchName.get().id
+    except Exception:
+        logging.info("no  batch to run.")
+        return -1
 
+    payload = parameters["lbc_web"]
+    payload["filters"]['location']["city_zipcodes"] = [{"zipcode": AdBatchName.get().cp}]
+    payload["filters"]["category"]["id"] = AdBatchName.get().ad_type
+
+    #payload["filters"]['location']["regions"] = ["12"]
+    #payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
+    #payload["filters"]["category"]["id"] = "10"
+
+    # ------------------------
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
 
     # sending post request and saving response as response object
@@ -195,7 +230,7 @@ def search(parameters):
         fields['location_region_name'] = location['region_name']
         fields['location_department_id'] = location['department_id']
         fields['location_department_name'] = location['department_name']
-        fields['location_city'] = location['city']
+        fields['location_city'] = location.get('city', None)
         fields['location_department_name'] = location.get('department_name', None)
         fields['location_zipcode'] = location['zipcode']
         fields['location_lat'] = location['lat']
@@ -225,7 +260,7 @@ def search(parameters):
 
         print("ad {} price {}K surf {} rooms {} city {}-{}".format(
             id,
-            fields['price']/1000.0, fields['square'],
+            fields['price'], fields['square'],
             fields.get('rooms', -1),
             fields['location_city'], fields['location_zipcode']
         ))
@@ -235,3 +270,5 @@ def search(parameters):
             # ad_model.save()
         except IntegrityError as error:
             logging.info("ERROR: " + str(error))
+
+    return 0
