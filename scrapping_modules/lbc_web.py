@@ -289,7 +289,7 @@ def search(parameters):
 
         fields['has_phone'] = ad['has_phone']
 
-        logging.info("{} eur - {}({}) - {} - {} - {}".format(
+        print("{} eur - {}({}) - {} - {} - {}".format(
             fields['price'],
             fields['location_city'], fields['location_zipcode'],
             fields['index_date'],
