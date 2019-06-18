@@ -25,17 +25,17 @@ os.chdir(os.path.dirname(script_path))
 #    sel.init_models()
 #    sel.search(parameters)
 
-with open("data/sel2.json", encoding='utf-8') as parameters_data:
-    parameters = json.load(parameters_data)
-    sel2.init_models()
-    sel2.search(parameters)
+#with open("data/sel2.json", encoding='utf-8') as parameters_data:
+#    parameters = json.load(parameters_data)
+#    sel2.init_models()
+#    sel2.search(parameters)
 
 #with open("data/pap.json", encoding='utf-8') as parameters_data:
 #    parameters = json.load(parameters_data)
 #    pap.init_models()
 #    pap.search(parameters)
 
-#with open("data/lbc_web.json", encoding='utf-8') as parameters_data:
-#    parameters = json.load(parameters_data)
-#    lbc_web.init_models()
-#    lbc_web.search(parameters)
+with open("data/lbc_web_model.json", encoding='utf-8') as parameters_data:
+    parameters = json.load(parameters_data)
+    lbc_web.init_models()
+    lbc_web.search(parameters)

@@ -7,6 +7,7 @@ import time
 import os
 import logging
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from models import dev_db
 
@@ -168,19 +169,31 @@ def init_models():
 
 
 def search(parameters):
-    try:
-        config_id = AdBatchName.get().id
-    except Exception:
-        logging.info("no  batch to run.")
-        return -1
+    config_id = ""
+    #try:
+    #    config_id = AdBatchName.get().id
+    #except Exception:
+    #    logging.info("no  batch to run.")
+    #    return -1
 
     payload = parameters["lbc_web"]
-    payload["filters"]['location']["city_zipcodes"] = [{"zipcode": AdBatchName.get().cp}]
-    payload["filters"]["category"]["id"] = AdBatchName.get().ad_type
+    #payload["filters"]['location']["city_zipcodes"] = [{"zipcode": AdBatchName.get().cp}]
+    #payload["filters"]["category"]["id"] = AdBatchName.get().ad_type
 
-    #payload["filters"]['location']["regions"] = ["12"]
-    #payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
-    #payload["filters"]["category"]["id"] = "10"
+    payload["filters"]['location']["regions"] = ["12"]
+    payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
+    payload["filters"]["category"]["id"] = "10"
+
+    exec_date = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+
+    # ------------------------
+    # try:
+    #     config = AdBatchInfo.get(AdBatchInfo.id == config_id)
+    #     limit_date = config.limit_date.strftime('%Y-%m-%d %H:%M:%S')
+    #     logging.info("{} - using limit date : {}".format(config_id, limit_date))
+    # except Exception:
+    #     logging.info("no config found for id [{}]. No limit date will be used".format(config_id))
+    #     limit_date = None
 
     # ------------------------
     headers = {'content-type': 'application/json', 'api-key': API_KEY}
@@ -202,11 +215,13 @@ def search(parameters):
     for ad in json_response.get('ads', []):
         id = ad['list_id']
 
+        index_date = ad.get('index_date')
+
         fields = {
             'list_id': id,
             'first_publication_date': ad['first_publication_date'],
             'expiration_date' : ad.get('expiration_date'),
-            'index_date' : ad.get('index_date'),
+            'index_date' : index_date,
             'status' : ad['status'],
             'category_id' : ad['category_id'],
             'category_name' : ad['category_name'],
@@ -258,17 +273,25 @@ def search(parameters):
 
         fields['has_phone'] = ad['has_phone']
 
-        print("ad {} price {}K surf {} rooms {} city {}-{}".format(
+        logging.info("ad {} price {}K surf {} rooms {} city {}-{}".format(
             id,
             fields['price'], fields['square'],
             fields.get('rooms', -1),
             fields['location_city'], fields['location_zipcode']
         ))
 
-        try:
-            ad_model = AdLBC.create(**fields)
-            # ad_model.save()
-        except IntegrityError as error:
-            logging.info("ERROR: " + str(error))
+        #if limit_date and index_date <= limit_date:
+        #    logging.info("limit date reached")
+        #    break
+
+        # try:
+        #     ad_model = AdLBC.create(**fields)
+        #     # ad_model.save()
+        # except IntegrityError as error:
+        #     logging.info("ERROR: " + str(error))
+
+    # TODO: use insert/replace instead of update
+    #AdBatchInfo.update( limit_date=exec_date).where(AdBatchInfo.id == config_id).execute()
+    #print("[{}] new limit date to '{}'".format(config_id, exec_date))
 
     return 0

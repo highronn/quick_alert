@@ -1,0 +1,17 @@
+{
+    "config_id": "lbc_75001_rent",
+    "lbc_web": {
+        "filters": {
+        "category": {},
+        "enums": {
+            "ad_type": ["offer"]
+        },
+        "location": {},
+        "ranges": {
+            "price": {"min": 0},
+            "square": {"min": 0}
+        }
+    },
+    "limit": 1000
+    }
+}
