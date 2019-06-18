@@ -12,6 +12,8 @@
             "square": {"min": 0}
         }
     },
+    "sort_by": "date",
+    "sort_order": "desc",
     "limit": 1000
     }
 }

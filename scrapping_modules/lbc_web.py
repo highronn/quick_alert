@@ -62,23 +62,34 @@ API_PARAMs:
         "keywords": {
             "text": "kw1 kw2 .. kwN"
         },
-        'owner': {
-            'store_id': 'TODO: check how to get it',
+        "owner": {
+            "store_id": "TODO: check how to get it",
         }
     },
 
-    'context': 'default',
+    "context": "default",
 
-    'sort_by': 'date',
-    'sort_order': 'desc',
+    "sort_by": "date",
+    "sort_order": "desc",
 
-    'offset': 0,
-    'limit': 5,
+    "offset": 0,
+    "limit": 5,
     "limit_alu": 3
 }
 
 [regions]
 12: ilde-de-france
+
+[category]
+1: caravaning
+4: caravaning
+7: nautisme
+8: locations+vente_immobilieres+bureaux_commerces
+9: vente_immobilieres
+10: locations
+11: colocations
+12: locations_gites
+13: bureaux_commerces
 """
 
 AD_REQUIRED_FIELDS = {
@@ -182,7 +193,7 @@ def search(parameters):
 
     payload["filters"]['location']["regions"] = ["12"]
     payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
-    payload["filters"]["category"]["id"] = "10"
+    payload["filters"]["category"]["id"] = "9"
 
     exec_date = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
 
@@ -275,7 +286,8 @@ def search(parameters):
 
         logging.info("ad {} price {}K surf {} rooms {} city {}-{}".format(
             id,
-            fields['price'], fields['square'],
+            fields['price']/1000.0,
+            fields['square'],
             fields.get('rooms', -1),
             fields['location_city'], fields['location_zipcode']
         ))
