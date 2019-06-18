@@ -11,19 +11,18 @@
           "city_zipcodes": [
               {
                   "locationType": "city",
-                  "city": "Roubaix",
-                  "zipcode": "59100",
-                  "label": "Roubaix (59100)"
+                  "city": "Paris",
+                  "zipcode": "75001",
+                  "label": "Paris (75001)"
               }
           ],
-          "regions": ["17"]
+          "regions": ["12"]
       },
       "ranges": {
-          "price": {"max": 200000},
-          "square": {"min": 80}
+          "price": {"min": 0},
+          "square": {"min": 0}
       }
   },
-  "limit": 35,
-  "limit_alu": 3
+  "limit": 1000
   }
 }

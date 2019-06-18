@@ -1,14 +1,17 @@
 {
-  "lbc_web_oculus": {
+  "lbc_web": {
     "limit": 100,
-    "limit_alu": 3,
     "filters":{
         "category":{},
-        "enums":{"ad_type":["offer"]},
+        "enums":{
+          "ad_type":["offer"]
+        },
         "location":{
             "regions": ["12"]
         },
-        "keywords": {"text": "oculus rift"},
+        "keywords": {
+          "text": "oculus rift"
+        },
         "ranges": {}
     }
   }

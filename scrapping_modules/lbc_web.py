@@ -191,11 +191,11 @@ def search(parameters):
     #payload["filters"]['location']["city_zipcodes"] = [{"zipcode": AdBatchName.get().cp}]
     #payload["filters"]["category"]["id"] = AdBatchName.get().ad_type
 
-    payload["filters"]['location']["regions"] = ["12"]
-    payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
-    payload["filters"]["category"]["id"] = "9"
+    #payload["filters"]['location']["regions"] = ["12"]
+    #payload["filters"]['location']["city_zipcodes"] = [{"zipcode": "75001"}]
+    #payload["filters"]["category"]["id"] = "9"
 
-    exec_date = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+    exec_date = (datetime.now() + relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
 
     # ------------------------
     # try:
@@ -228,6 +228,10 @@ def search(parameters):
 
         index_date = ad.get('index_date')
 
+        #if limit_date and index_date <= limit_date:
+        #    logging.info("limit date reached")
+        #    break
+
         fields = {
             'list_id': id,
             'first_publication_date': ad['first_publication_date'],
@@ -242,6 +246,7 @@ def search(parameters):
             'url' : ad['url'],
             'price' : ad['price'][0],
             'price_calendar' : ad['price_calendar'],
+            'square' : ad.get('square'),
             'nb_images' : ad['images']['nb_images']
         }
 
@@ -284,17 +289,13 @@ def search(parameters):
 
         fields['has_phone'] = ad['has_phone']
 
-        logging.info("ad {} price {}K surf {} rooms {} city {}-{}".format(
-            id,
-            fields['price']/1000.0,
-            fields['square'],
-            fields.get('rooms', -1),
-            fields['location_city'], fields['location_zipcode']
+        logging.info("{} eur - {}({}) - {} - {} - {}".format(
+            fields['price'],
+            fields['location_city'], fields['location_zipcode'],
+            fields['index_date'],
+            fields['url'],
+            fields['subject']
         ))
-
-        #if limit_date and index_date <= limit_date:
-        #    logging.info("limit date reached")
-        #    break
 
         # try:
         #     ad_model = AdLBC.create(**fields)
