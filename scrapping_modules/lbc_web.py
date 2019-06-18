@@ -90,6 +90,8 @@ API_PARAMs:
 11: colocations
 12: locations_gites
 13: bureaux_commerces
+15: informatique
+43: consoles_jeux_video
 """
 
 AD_REQUIRED_FIELDS = {
