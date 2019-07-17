@@ -6,10 +6,14 @@ from urllib.parse import unquote, urlencode
 from datetime import datetime
 import sys 
 from models import dev_db
+import logging
+
+from requests.auth import HTTPBasicAuth
+from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPProxyAuth
 
 from fake_useragent import UserAgent
 import random
-
 
 from peewee import (
     CharField,
@@ -21,9 +25,7 @@ from peewee import (
     BooleanField,
     FloatField,
     DecimalField,
-
     IntegrityError,
-
     Model,
     MySQLDatabase
 )
@@ -37,7 +39,7 @@ db = quick_alert_db = MySQLDatabase(
     port=3306
 )
 
-start_date_script = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+start_date_script = (datetime.now()+ relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
 
 #db = dev_db
 db = quick_alert_db
@@ -71,32 +73,68 @@ AD_REQUIRED_FIELDS = {
     "texte": TextField(null=True, default=None),
 }
 
+
+
+""" 
+class AdSeLoger(Model):
+    class Meta:
+        database = db
+        db_table = 't_sel_ads_buffer_in'
+        primary_key = False """
+
+
+###################################################################3
 class AdPap(Model):
     class Meta:
         database = db
         db_table = 't_pap_ads_buffer_in'
-
-class AdBatchInfo(Model):
+""" 
+class AdBatchTable(Model):
     class Meta:
         database = db
         db_table = 't_batch_info_2'
 
     id = CharField(unique=True, primary_key=True)
-    limit_date = DateTimeField(null=False)       
+    is_actif = IntegerField(null=False)
+    limit_date = DateTimeField(null=False)
+    thread = IntegerField(null=True)       
 
-class AdBatchName(Model):
+class AdBatchView(Model):
+    class Meta:
+        database = db
+        db_table = 'v_batch_run_pap'
+        
+   
+    id = CharField(unique=True, primary_key=True)
+    cp = DateTimeField(null=False)       
+    ad_type = CharField(null=False)   """      
+
+class AdBatchTable(Model):
+    class Meta:
+        database = db
+        db_table = 't_batch_info'
+
+    id = CharField(unique=True, primary_key=True)
+    is_actif = IntegerField(null=False)
+    limit_date = DateTimeField(null=False)        
+    ad_type = CharField(null=False)     
+    ad_code = CharField(null=False)   
+    cp = CharField(null=False)  
+    thread = IntegerField(null=False) 
+   
+class AdBatchView(Model):
     class Meta:
         database = db
         db_table = 'v_batch_run_pap'
    
-    id = CharField(unique=True, primary_key=True)
-    cp = DateTimeField(null=False)       
-    ad_type = CharField(null=False)        
+    id = CharField(unique=True, primary_key=True)       
+    cp = CharField(null=False)
+    ad_type = CharField(null=False)
 
-class v_peewee(Model):
+class v_check_validity(Model):
     class Meta:
         database = db
-        db_table = 'v_peewee_2'
+        db_table = 'v_check_validity'
 
     id_ad = IntegerField(unique=True, primary_key=True)
     id_origin = IntegerField(null=False)
@@ -136,28 +174,30 @@ def init_models():
 #########################################################################################################################
 #########################################################################################################################
 #########################################################################################################################
-def search(parameters):
-
-
-    
+def search(parameters,threa):
 
     v_timer = 5
-    v_wait = 0
-    
+    v_wait = 0    
     wait_time = 1.5    
-    start_date_script = (datetime.now()+ relativedelta(minutes=-5)).strftime('%Y-%m-%d %H:%M:00')
+    start_date_script = (datetime.now()+ relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
+
+    """ parameters['config_id'] = AdBatchView.get().id
+    parameters["cities"][0][1] = AdBatchView.get().cp
+    parameters["pap"]["recherche[produit]"] = AdBatchView.get().ad_type
+    config_id = parameters['config_id'] """
 
     try : 
-        parameters['config_id'] = AdBatchName.get().id
-        parameters["cities"][0][1] = AdBatchName.get().cp
-        parameters["pap"]["recherche[produit]"] = AdBatchName.get().ad_type
-        config_id = parameters['config_id']
+        parameters['config_id'] = AdBatchView.get().id
+        parameters["cities"][0][1] = AdBatchView.get().cp
+        parameters["pap"]["recherche[produit]"] = AdBatchView.get().ad_type
+        config_id = parameters['config_id']   
+
     except Exception:
         print("No Batch to run")
         return -1
 
     try:
-        config = AdBatchInfo.get(AdBatchInfo.id == parameters['config_id'])
+        config = AdBatchTable.get(AdBatchTable.id == parameters['config_id'])
         limit_date = config.limit_date.strftime('%Y-%m-%d %H:%M:%S')
         print("{} - using limit date : {}".format(config_id,limit_date))
         
@@ -185,15 +225,45 @@ def search(parameters):
         
     # Ajout des villes
     for city in parameters['cities']:
-        params += "&recherche[geo][ids][]=%s" % place_search(city[1])
+
+        code = place_search(city[1])
+        #print("&recherche[geo][ids][]=%s" % code)
+        #print(code)
+        if code == 0:
+            AdBatchTable.update(is_actif = -1).where(AdBatchTable.id == config_id).execute()
+            print("     Batch deactivated")
+            return
+            
+        else :      
+            params += "&recherche[geo][ids][]=%s" % code
     
     #print (parameters)
 ####################################################################
     
     #print("Retrieve Ads")
     for i in range(0,10):
+ ###########################################################""              
+        #proxies = { 'https' : "https://139.28.219.246:8080" }
+        #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=60,proxies=proxies,auth=HTTPBasicAuth('loic.montagnac@gmail.com', 'FRbY3wZPobCmAbIEaBzW')) 
+    
+        #proxies = { 'https' : "https://loic.montagnac@gmail.com:FRbY3wZPobCmAbIEaBzW@139.28.219.246:8080" }
+        #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=60,proxies=proxies) 
+         
+        """ 
+        s = requests.Session()
+        proxies = {
+        "http": "http://fr373.nordvpn.com:8080",
+        "https": "https://fr373.nordvpn.com:8080"
+        }
+        auth = HTTPProxyAuth("loic.montagnac@gmail.com", "FRbY3wZPobCmAbIEaBzW")
+        s.proxies = proxies
+        s.auth = auth        # Set authorization parameters globally
+
+        ext_ip = s.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=120) """
+
+###########################################################""
         try:
-            request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=10)
+            request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=10) 
             #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
             print(request.url)
             data = request.json()
@@ -302,7 +372,7 @@ def search(parameters):
                 #db.close
             except IntegrityError as error:
                 logging.info("      Error: " + str(error))
-                return
+                break
             except:
                 #logging.info("ERROR: Database error connection")
                 time.sleep(v_timer)
@@ -314,9 +384,9 @@ def search(parameters):
             else:
                 break
    
-    AdBatchInfo.update( limit_date=start_date_script).where(AdBatchInfo.id == config_id).execute()
+    AdBatchTable.update( limit_date=start_date_script).where(AdBatchTable.id == config_id).execute()
     print("      {} - new limit date to '{}'".format(config_id, start_date_script))
-    print("Change PROXY")
+    #print("Change PROXY")
     #time.sleep(20)
 
 #########################################################################################################################
@@ -333,7 +403,7 @@ def place_search(zipcode):
     
     #print("Retrieve Ids of postal code : {}".format(zipcode))
 
-    for i in range(0,10):
+    for i in range(0,5):
         try:
             request = requests.get("https://ws.pap.fr/gis/places", params=payload, headers=header, timeout=3)
             #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
@@ -352,6 +422,13 @@ def place_search(zipcode):
             time.sleep(v_timer)
             v_timer += v_wait      
             continue
+        except :
+            print ("      place_search - zipcode doesn't exist - Waiting : {} sec(s)".format(v_timer))
+            #time.sleep(v_timer)
+            #v_timer += v_wait 
+            return 0
+            
+
         else:
             break
 
@@ -362,36 +439,57 @@ def get_expiration():
     
     v_delay = 5
     v_wait_e = 0
-    v_wait_r = 0  
+    v_wait_r = 1.5  
     
     for a in range(1,40):
-        config = v_peewee.get()
+        config = v_check_validity.get()        
+        id_origin = config.id_origin
+        id_ad  = config.id_ad
+
         init_url = config.url
+
+        print(init_url)
+
         for i in range(0,10):
             try:
                 request = requests.get(init_url,  headers=header, timeout=3) 
-                if  request.url == init_url:
-                    t_peewee.update(check_expiration = t_peewee.check_expiration + 3).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
-                    print("get expiration {} :  {}  Valide".format(a,config.id_ad)) 
+                print (request.url)
+                print (request.text)
+
+                if id_origin == 1 and request.url == init_url:
+                    t_peewee.update(check_expiration = t_peewee.check_expiration + 3).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Valide".format(a,id_ad)) 
+                    data = request.json()
+                    print(data)
+                    time.sleep(v_wait_r) 
+
+                elif id_origin == 1 and  "expiree" in  request.url :
+                    t_peewee.update(check_expiration = -4).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Expirée".format(a,id_ad)) 
                     time.sleep(v_wait_r)
 
-                elif "expiree" in  request.url :
-                    t_peewee.update(check_expiration=-4).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
-                    print("get expiration {} :  {}  Expirée".format(a,config.id_ad)) 
-                    time.sleep(v_wait_r)
-
-                elif "erreur-temporaire" in  request.url :
-                    t_peewee.update(check_expiration=-1).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
-                    print("get expiration {} :  {}  Erreur-temporaire".format(a,config.id_ad)) 
+                elif  id_origin == 1 and "erreur-temporaire" in  request.url :
+                    t_peewee.update(check_expiration = -1).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Erreur-temporaire".format(a,id_ad)) 
                     print("{} - URL = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
                     time.sleep(v_wait_r)
                     sys.exit()
 
-                else:
-                    t_peewee.update(check_expiration=-3).where(t_peewee.id_ad == config.id_ad, t_peewee.id_origin == config.id_origin).execute()
-                    print("get expiration {} :  {}  Invalide".format(a,config.id_ad)) 
-                    print("{} - URL = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
+                elif  id_origin == 2 and  "produit" in request.text :
+                    t_peewee.update(check_expiration = t_peewee.check_expiration + 3).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("     get expiration {} :  {}  Valide".format(a,id_ad)) 
                     time.sleep(v_wait_r)
+                
+                elif  id_origin == 2 and  "Page introuvable" in request.text :
+                    t_peewee.update(check_expiration = -4).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("     get expiration {} :  {}  Page introuvable".format(a,id_ad)) 
+                    time.sleep(v_wait_r)
+
+                """ else:
+                    t_peewee.update(check_expiration=-3).where(t_peewee.id_ad == id_ad, t_peewee.id_origin == config.id_origin).execute()
+                    print("get expiration {} :  {}  Invalide".format(a,id_ad)) 
+                    print("{} - URL = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
+                    time.sleep(v_wait_r) """
                 break
 
             except requests.exceptions.ConnectionError as r:

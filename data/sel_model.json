@@ -1,0 +1,10 @@
+{
+    "config_id": "XXXXXXX",
+    "sel" : {
+        "cp": "75018",
+        "ad_type": 1,
+        "min_surf": 0,
+        "max_price": 0,
+        "nb_room_min": 0
+    }
+}

@@ -3,7 +3,6 @@
 import os
 # import sys
 import json
-# import models
 # import trello_module
 import logging
 # from scrapping_modules import li
