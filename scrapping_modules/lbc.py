@@ -10,7 +10,7 @@ from datetime import datetime
 from models import dev_db
 from dateutil.relativedelta import relativedelta
 from urllib.parse import unquote, urlencode
-import sys 
+import sys
 from fake_useragent import UserAgent
 import random
 from peewee import (
@@ -68,7 +68,7 @@ AD_REQUIRED_FIELDS = {
     'owner_name': CharField(null=True, default=None),
     'owner_no_salesmen': BooleanField(null=True, default=None),
     'owner_siren': CharField(null=True, default=None),
-    #'owner_pro_rates_link': CharField(null=True, default=None), 
+    #'owner_pro_rates_link': CharField(null=True, default=None),
     'opt_has_option': BooleanField(null=True, default=None),
     'opt_booster': BooleanField(null=True, default=None),
     'opt_photosup': BooleanField(null=True, default=None),
@@ -108,7 +108,7 @@ class AdLBC(Model):
         database = db
         db_table = 't_lbc_ads_buffer_in'
         primary_key = False
-        
+
 
 class AdBatchTable(Model):
     class Meta:
@@ -117,18 +117,18 @@ class AdBatchTable(Model):
 
     id = CharField(unique=True, primary_key=True)
     limit_date = DateTimeField(null=False)
-    cp = DateTimeField(null=False)       
-    ad_type = CharField(null=False)  
-    thread = IntegerField(null=False)                   
+    cp = DateTimeField(null=False)
+    ad_type = CharField(null=False)
+    thread = IntegerField(null=False)
 
 class AdBatchView(Model):
     class Meta:
         database = db
         db_table = 'v_batch_run_lbc'
-   
+
     id = CharField(unique=True, primary_key=True)
-    cp = DateTimeField(null=False)       
-    ad_type = CharField(null=False)         
+    cp = DateTimeField(null=False)
+    ad_type = CharField(null=False)
 
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
@@ -141,7 +141,7 @@ def search(parameters,ThreadId):
         ####################################################################
         ##  RECUPERATION IDENTIFIANT DU BATCH A TRAITER
         ####################################################################
-        try : 
+        try :
             BatchView = AdBatchView.get()
             config_id = BatchView.id
             #print("{} - Thread {} Starting...".format(config_id, ThreadId))
@@ -154,13 +154,13 @@ def search(parameters,ThreadId):
         ####################################################################
         ##  CHECK SI BATCH UNLOCK
         ####################################################################
-        try : 
+        try :
             #print("{} - Thread {} Starting 2...".format(config_id, ThreadId))
             BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
-            if BatchTable.thread == 0 :  
+            if BatchTable.thread == 0 :
                 #print("{} - Thread {} batch unlocked 3...".format(config_id, ThreadId))
                 pass
-            else :                
+            else :
                 #print("{} - Thread {} Check 1 : Batch already locked !      {}/{}".format(config_id, ThreadId,BatchTable.thread ,ThreadId ))
                 continue
         except :
@@ -170,15 +170,15 @@ def search(parameters,ThreadId):
         ####################################################################
         ##  LOCK DU BATCH
         ####################################################################
-        try : 
+        try :
             #print("{} - Thread {} trying to get lock...".format(config_id, ThreadId))
             AdBatchTable.update( thread=ThreadId).where(AdBatchTable.id == config_id , AdBatchTable.thread == "0" ).execute()
             BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
-            #time.sleep(1/ThreadId)                  
-            if BatchTable.thread == ThreadId : 
+            #time.sleep(1/ThreadId)
+            if BatchTable.thread == ThreadId :
                 #print("{} - Thread {} batch locked successfully...".format(config_id, ThreadId))
                 break
-            else :                 
+            else :
                 #print("{} - Thread {} Check 2 : Batch already locked !      {}/{}".format(config_id, ThreadId,BatchTable.thread ,ThreadId ))
                 continue
         except :
@@ -192,12 +192,12 @@ def search(parameters,ThreadId):
     ####################################################################
     parameters['config_id'] = BatchTable.id
     parameters["lbc_web"]["filters"]['location']["city_zipcodes"][0]["zipcode"] = BatchTable.cp
-    parameters["lbc_web"]["filters"]["category"]["id"] = BatchTable.ad_type 
+    parameters["lbc_web"]["filters"]["category"]["id"] = BatchTable.ad_type
     payload = parameters["lbc_web"]
     config_id = parameters['config_id']
-    start_date_script = (datetime.now()+ relativedelta(minutes=-0)).strftime('%Y-%m-%d %H:%M:00')  
+    start_date_script = (datetime.now()+ relativedelta(minutes=-0)).strftime('%Y-%m-%d %H:%M:00')
 
-    headers = {'content-type': 'application/json', 'api-key': API_KEY} 
+    headers = {'content-type': 'application/json', 'api-key': API_KEY}
 
     try:
         config = AdBatchTable.get(AdBatchTable.id == config_id)
@@ -208,16 +208,16 @@ def search(parameters,ThreadId):
         print("     {} - no config found for. no limit date will be used".format(config_id))
         limit_date = None
     ####################################################################
-    
+
     # sending post request and saving response as response object
     response = requests.post(url=API_ENDPOINT, data=json.dumps(payload), headers=headers)
     json_response = response.json()
     url_response = response.url
 
     #with open("data/test/lbc.json") as json_file:
-    #    json_response = json.load(json_file) 
+    #    json_response = json.load(json_file)
     #print(json_response)
-    
+
     attributes_set = set()
 
     for ad in json_response.get('ads', []):
@@ -227,7 +227,7 @@ def search(parameters,ThreadId):
             'list_id': list_id,
             'first_publication_date': ad['first_publication_date'],
             'expiration_date' : ad.get('expiration_date'),
-            'index_date' : ad.get('index_date'),            
+            'index_date' : ad.get('index_date'),
             'status' : ad['status'],
             'category_id' : ad['category_id'],
             'category_name' : ad['category_name'],
@@ -250,9 +250,9 @@ def search(parameters,ThreadId):
         fields['location_region_id'] = location['region_id']
         fields['location_region_name'] = location['region_name']
         fields['location_department_id'] = location['department_id']
-        fields['location_department_name'] = location.get('department_name' , None)        
+        fields['location_department_name'] = location.get('department_name' , None)
         fields['location_city_label'] = location['city_label']
-        fields['location_city'] = location.get('city' , None) 
+        fields['location_city'] = location.get('city' , None)
         fields['location_zipcode'] = location['zipcode']
         fields['location_lat'] = location['lat']
         fields['location_lng'] = location['lng']
@@ -264,9 +264,9 @@ def search(parameters,ThreadId):
         fields['owner_store_id'] = owner['store_id']
         fields['owner_user_id'] = owner['user_id']
         fields['owner_type'] = owner['type']
-        fields['owner_name'] = owner.get('name' , None)  
+        fields['owner_name'] = owner.get('name' , None)
         fields['owner_no_salesmen'] = owner['no_salesmen']
-        fields['owner_siren'] = owner.get('siren' , None)        
+        fields['owner_siren'] = owner.get('siren' , None)
         #fields['owner_pro_rates_link'] = owner.get('owner_pro_rates_link' , None)
 
         options = ad['options']
@@ -300,11 +300,11 @@ def search(parameters,ThreadId):
 
         except Exception:
             print("{} - Insert data error into DB".format(config_id))
-        
-        
-        
-        
-            
+
+
+
+
+
     AdBatchTable.update( limit_date=start_date_script, thread=0).where(AdBatchTable.id == config_id).execute()
 
     #print("      {} - new limit date to '{}'".format(config_id, start_date_script))

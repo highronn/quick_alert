@@ -59,8 +59,8 @@ AD_REQUIRED_FIELDS = {
     "bedrooms"	: CharField(null=True, default=None),
     "price"	: CharField(null=True, default=None),
     "priceUnit"	: CharField(null=True, default=None),
-    "priceDescription"	:CharField(null=True, default=None),    
-    
+    "priceDescription"	:CharField(null=True, default=None),
+
     "priceAnnuity"	: CharField(null=True, default=None),
     "condoAnnualCharges"	: CharField(null=True, default=None),
     "city"	: CharField(null=True, default=None),
@@ -68,21 +68,21 @@ AD_REQUIRED_FIELDS = {
     "longitude"	: DecimalField(decimal_places=6, max_digits=9,null=True, default=None),
     "latitude"	: DecimalField(decimal_places=6, max_digits=9,null=True, default=None),
     "accuracy"	: CharField(null=True, default=None),
-    "condoProperties"	: CharField(null=True, default=None), 
+    "condoProperties"	: CharField(null=True, default=None),
     "energy_grade"	: CharField(null=True, default=None),
     "energy_status"	: CharField(null=True, default=None),
     "energy_value"	: CharField(null=True, default=None),
     "greenhouseGas_grade"	: CharField(null=True, default=None),
     "greenhouseGas_status"	: CharField(null=True, default=None),
     "greenhouseGas_value"	: CharField(null=True, default=None),
-    
+
     "publicationId"	: CharField(null=True, default=None),
     #"isIndividual"	: CharField(null=True, default=None),
     "isIndividual"	: BooleanField(null=True, default=None),
     "thirdPartyId"	: CharField(null=True, default=None),
     "comments"	: CharField(null=True, default=None),
     "reference"	: CharField(null=True, default=None),
-    
+
     "professionals_email"	: CharField(null=True, default=None),
     "professionals_id"	: CharField(null=True, default=None),
     "professionals_publicationId"	: CharField(null=True, default=None),
@@ -98,16 +98,16 @@ AD_REQUIRED_FIELDS = {
     "isSelection"	: BooleanField(null=True, default=None),
     "isExclusiveness"	: BooleanField(null=True, default=None),
     "businessUnit"	: CharField(null=True, default=None),
-    
+
     "alur_feesPercentage"	: CharField(null=True, default=None),
     "alur_price"	: CharField(null=True, default=None),
     "alur_textTemplate"	: CharField(null=True, default=None),
     "alur_priceExcludingFees"	: CharField(null=True, default=None),
     "permalink"	: CharField(null=True, default=None),
     "priceVariations"	: TextField(null=True, default=None),
-    "features"	: TextField(null=True, default=None),  
+    "features"	: TextField(null=True, default=None),
     "description"	: TextField(null=True, default=None),
-   
+
 }
 
 
@@ -176,10 +176,10 @@ class BaseAds():
             'permalink'	: None,
             'features'	: None
 
-                
 
 
-            
+
+
 
 
 
@@ -275,9 +275,9 @@ class SeLogerAds(BaseAds):
         ret = None
         v_timer = 5
         v_wait = 5
-        wait_time = 1.5 
-        
-        """ 
+        wait_time = 1.5
+
+        """
         r = requests.get("https://api-seloger.svc.groupe-seloger.com/api/v1/listings/%s" % (add_id), headers=self.headers)
         try:
             data = r.json()
@@ -285,8 +285,8 @@ class SeLogerAds(BaseAds):
             print(r.status_code)
             print(r.text) """
 
-             
-        
+
+
 
         #####################################################################################"
 
@@ -296,35 +296,35 @@ class SeLogerAds(BaseAds):
                 r = requests.get("https://api-seloger.svc.groupe-seloger.com/api/v1/listings/%s" % (add_id), headers=self.headers, timeout=30)
                 data = r.json()
             except requests.exceptions.ConnectionError as r:
-                r.status_code = "Connection refused"             
+                r.status_code = "Connection refused"
                 print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
-                v_timer += v_wait  
+                v_timer += v_wait
                 continue
 
             except requests.exceptions.ReadTimeout as r:
-                r.status_code = "Connection Timeout"             
+                r.status_code = "Connection Timeout"
                 print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
-                v_timer += v_wait          
+                v_timer += v_wait
                 continue
             except:
                 print("     {}".format(r.status_code))
                 print("     {}".format(r.text))
                 print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
-                v_timer += v_wait          
+                v_timer += v_wait
                 continue
-            
+
             else:
                 break
-        
+
         else:
-            return   
+            return
 
         #####################################################################################""
 
-        
+
         #print(r.json())
         #time.sleep(10)
         #return
@@ -332,7 +332,7 @@ class SeLogerAds(BaseAds):
             'source': self.website,
             'id': add_id,
 
-            'priceDescription': data['priceDescription'],            
+            'priceDescription': data['priceDescription'],
             'created': datetime.datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%S'),
             'lastModified': datetime.datetime.strptime(data['lastModified'], '%Y-%m-%dT%H:%M:%S'),
             'title': data['title'],
@@ -372,7 +372,7 @@ class SeLogerAds(BaseAds):
             'professionals_latitude': data['professionals'][0]['latitude'],
             'professionals_level': data['professionals'][0]['level'],
             'professionals_directoryId': data['professionals'][0]['directoryId'],
-            
+
             'transactionType': data['transactionType'],
             'realtyType': data['realtyType'],
             'greenhouseGas_grade': data['greenhouseGas']['grade'],
@@ -383,7 +383,7 @@ class SeLogerAds(BaseAds):
             'bedrooms': data['bedrooms'],
             'isExclusiveness': data['isExclusiveness'],
             'businessUnit': data['businessUnit'],
-            'condoAnnualCharges': data['condoAnnualCharges'],            
+            'condoAnnualCharges': data['condoAnnualCharges'],
             'description': data['description'],
             'permalink': data['permalink'],
             'features': data['features'],
@@ -391,7 +391,7 @@ class SeLogerAds(BaseAds):
         if raw:
             ret['raw'] = data
         """ for t in data['transportations'].get('available', []):
-            ret['proximity'].append(t['name']) 
+            ret['proximity'].append(t['name'])
         for p in data['photos']:
             ret['picture'].append(p) """
         return ret
@@ -412,7 +412,7 @@ class SeLogerAds(BaseAds):
 
         r = requests.post(LOCATION_URL, data=json.dumps(LOCATION_PAYLOAD), headers=self.headers,timeout=30)
         return r.json()[0]['id']
-    
+
     def search(self, cp, min_surf, max_price, ad_type, nb_room_min,config_id, raw=True):
         """Recover the ads matching a given search
         arg 1: the postal code
@@ -421,40 +421,40 @@ class SeLogerAds(BaseAds):
         arg 4: type of the add (1 -> location, 2 -> sell)
         arg 5: the owner_id of the search (the user making the search)
         arg 6: nb_room_min, minimum number of rooms"""
-           
-        #######################################################""    
-        try : 
+
+        #######################################################""
+        try :
             _cp = []
             if type(cp) is list:
                 for c in cp:
                     _cp.append(self.get_location(c))
             else:
                 _cp.append(self.get_location(cp))
-            
+
             db_cp = cp
             db_insee_code = AdBatchTable.get(AdBatchTable.id == config_id).ad_code
             __cp=_cp[0]
-                        
-            if __cp != db_insee_code : 
-                print("     Check CP Update     {}/{} for {}".format(db_insee_code,__cp,db_cp))  
+
+            if __cp != db_insee_code :
+                print("     Check CP Update     {}/{} for {}".format(db_insee_code,__cp,db_cp))
                 AdBatchTable.update( ad_code=__cp, is_actif=3).where(AdBatchTable.id == config_id).execute()
-        except : 
+        except :
             return -2
-        #######################################################""    
+        #######################################################""
 
 
         v_timer = 5
         v_wait = 5
-        wait_time = 1.5  
+        wait_time = 1.5
         _pageCount = 10
         ret = {
                 'id': [],
                 'source': self.website
             }
         #for y in range(1,_pageCount) :
-        y = 1 
+        y = 1
         _pageCount = 1
-        while y <= _pageCount : 
+        while y <= _pageCount :
             #print(y)
             #print(_pageCount)
             SEARCH_PAYLOAD = {
@@ -484,10 +484,10 @@ class SeLogerAds(BaseAds):
             #"sortBy":8 None
             #"sortBy":9  ????
             #"sortBy":10  date created récente
-            #"sortBy":11  date 
+            #"sortBy":11  date
             SEARCH_URL = "https://api-seloger.svc.groupe-seloger.com/api/v1/listings/search"
             #################################################################
-            
+
             #print('hello')
             for i in range(0,10):
                 try:
@@ -497,33 +497,33 @@ class SeLogerAds(BaseAds):
                     if r.status_code == 404:
                         AdBatchTable.update(is_actif = -1).where(AdBatchTable.id == config_id).execute()
                         print("     Batch deactivated")
-                        return -2            
+                        return -2
                     if r.status_code != 200 :
                         print(r.status_code)
                         continue
                     else :
-                                                 
+
                         data = r.json()
                         #print(data)
                         time.sleep(10)
-                        if y == 1 : 
+                        if y == 1 :
                             print ("pageCount : {}".format(data['pageCount']))
                             print ("totalCount : {}".format(data['totalCount']))
                         _pageCount = data['pageCount']
                         print ("Retrieve Page : {}".format(y))
-                        break    
+                        break
                 except requests.exceptions.ConnectionError as r:
-                    r.status_code = "Connection refused"             
+                    r.status_code = "Connection refused"
                     print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                     time.sleep(v_timer)
-                    v_timer += v_wait  
+                    v_timer += v_wait
                     continue
 
                 except requests.exceptions.ReadTimeout as r:
-                    r.status_code = "Connection Timeout"             
+                    r.status_code = "Connection Timeout"
                     print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                     time.sleep(v_timer)
-                    v_timer += v_wait          
+                    v_timer += v_wait
                     continue
             else:
                 config_id = AdBatchView.get().id
@@ -536,19 +536,19 @@ class SeLogerAds(BaseAds):
                 'id': [],
                 'source': self.website
             }
-            
+
             for i in data['items']:
                 ret1['id'].append(i['id'])
-            
+
             #print(ret1)
-            
-            
-            
+
+
+
             ret['id'].extend( ret1['id'])
             #print ( ret['id'])
             #print(_pageCount)
             y += 1
-            
+
 
         else :
             return ret
@@ -567,21 +567,21 @@ class AdBatchTable(Model):
 
     id = CharField(unique=True, primary_key=True)
     is_actif = IntegerField(null=False)
-    limit_date = DateTimeField(null=False)        
-    ad_type = CharField(null=False)     
-    ad_code = CharField(null=False)   
-    cp = CharField(null=False)  
-    thread = IntegerField(null=False) 
-   
+    limit_date = DateTimeField(null=False)
+    ad_type = CharField(null=False)
+    ad_code = CharField(null=False)
+    cp = CharField(null=False)
+    thread = IntegerField(null=False)
+
 class AdBatchView(Model):
     class Meta:
         database = db
         db_table = 'v_batch_run_sel'
-   
+
     id = CharField(unique=True, primary_key=True)
-    #cp = DateTimeField(null=False)       
-    ad_type = CharField(null=False)     
-    ad_code = CharField(null=False)   
+    #cp = DateTimeField(null=False)
+    ad_type = CharField(null=False)
+    ad_code = CharField(null=False)
     cp = CharField(null=False)
 
 def init_models():
@@ -595,7 +595,7 @@ def search(params,ThreadId):
         ####################################################################
         ##  RECUPERATION IDENTIFIANT DU BATCH A TRAITER
         ####################################################################
-        try : 
+        try :
             BatchView = AdBatchView.get()
             config_id = BatchView.id
             #print("{} - Thread {} Starting...".format(config_id, ThreadId))
@@ -608,14 +608,14 @@ def search(params,ThreadId):
         ####################################################################
         ##  CHECK SI BATCH UNLOCK
         ####################################################################
-        try : 
+        try :
             #print("{} - Thread {} Starting 2...".format(config_id, ThreadId))
             #BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
             #print(BatchTable.thread)
-            if AdBatchTable.get(AdBatchTable.id == config_id).thread == 0 :  
+            if AdBatchTable.get(AdBatchTable.id == config_id).thread == 0 :
                 #print("{} - Thread {} batch unlocked 3...".format(config_id, ThreadId))
                 pass
-            else :                
+            else :
                 #print("{} - Thread {} Check 1 : Batch already locked !      {}/{}".format(config_id, ThreadId,BatchTable.thread ,ThreadId ))
                 continue
         except :
@@ -625,15 +625,15 @@ def search(params,ThreadId):
         ####################################################################
         ##  LOCK DU BATCH
         ####################################################################
-        try : 
+        try :
             #print("{} - Thread {} trying to get lock...".format(config_id, ThreadId))
             AdBatchTable.update( thread=ThreadId).where(AdBatchTable.id == config_id , AdBatchTable.thread == "0" ).execute()
             #BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
-            #time.sleep(1/ThreadId)                  
-            if AdBatchTable.get(AdBatchTable.id == config_id).thread == ThreadId : 
+            #time.sleep(1/ThreadId)
+            if AdBatchTable.get(AdBatchTable.id == config_id).thread == ThreadId :
                 #print("{} - Thread {} batch locked successfully...".format(config_id, ThreadId))
                 break
-            else :                 
+            else :
                 #print("{} - Thread {} Check 2 : Batch already locked !      {}/{}".format(config_id, ThreadId,BatchTable.thread ,ThreadId ))
                 continue
         except :
@@ -646,15 +646,15 @@ def search(params,ThreadId):
     ##  PARAMETRAGE DU JSON & URL
     ####################################################################
     BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
-    
+
     params['config_id'] = config_id
     params["sel"]["cp"] = AdBatchTable.get(AdBatchTable.id == config_id).cp
     params["sel"]["ad_type"] = AdBatchTable.get(AdBatchTable.id == config_id).ad_type
     cp = params["sel"]["cp"]
 
     #print(params)
-    
-  
+
+
 
 
 
@@ -674,12 +674,12 @@ def search(params,ThreadId):
 
 
     #################################################""
-    """ try : 
+    """ try :
         params['config_id'] = AdBatchName.get().id
     except Exception:
         print("No Batch to run")
         return -1
-    
+
     params["sel"]["cp"] = AdBatchName.get().cp
     params["sel"]["ad_type"] = AdBatchName.get().ad_type
     config_id = params['config_id']
@@ -698,7 +698,7 @@ def search(params,ThreadId):
         print("     {} - no config found for. no limit date will be used".format(config_id))
         limit_date = None
     #################################################
-    
+
     #print(sel_params) """
 
 
@@ -725,7 +725,7 @@ def search(params,ThreadId):
     if r == -2 :
         return -2
         #print("     {}".format(r))
-    
+
       # check that data sent are coherent
     # should have the same count of element in r['id'] and r['raw']['items']
     ids = r.get("id", [])
@@ -742,8 +742,8 @@ def search(params,ThreadId):
     batch_id = 0
     #print(ids)
     for id in ids:
-        
-        
+
+
         ##################################################""
         # NEW
         ##################################################""
@@ -802,7 +802,7 @@ def search(params,ThreadId):
             'bedrooms': data['bedrooms'],
             'isExclusiveness': data['isExclusiveness'],
             'businessUnit': data['businessUnit'],
-            'condoAnnualCharges': data['condoAnnualCharges'],            
+            'condoAnnualCharges': data['condoAnnualCharges'],
             'description': data['description'],
             'permalink': data['permalink'],
             'features': data['features'],
@@ -828,6 +828,6 @@ def search(params,ThreadId):
             logging.info("ERROR: " + str(error))
     ##################################################""
     # UPDATE LIMIT_DATE & THREAD = 0
-    ##################################################""   
+    ##################################################""
     AdBatchTable.update( limit_date=start_date_script, thread=0, is_actif=5).where(AdBatchTable.id == config_id).execute()
     print("      {} - new limit date to '{}'".format(config_id, start_date_script))

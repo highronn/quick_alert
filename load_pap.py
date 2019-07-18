@@ -8,7 +8,7 @@ import logging
 from scrapping_modules import sel
 from scrapping_modules import lbc
 from scrapping_modules import pap
-import threading 
+import threading
 
 #############################################################
 # PARAMETERS
@@ -35,7 +35,7 @@ def ThreadScript(threadid):
 script.AdBatchTable.update(thread=0).where(id == 'pap%').execute()
 
 #############################################################
-# MULTI THREADING 
+# MULTI THREADING
 ##############################################################
 nb_thread = 1
 max_batch = 13000
