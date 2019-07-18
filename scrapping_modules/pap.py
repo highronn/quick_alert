@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
+
+import sys
+import logging
 import requests
 import time
-from urllib.parse import unquote, urlencode
-from datetime import datetime
-import sys
+import random
 
+from datetime import datetime
+from urllib.parse import unquote, urlencode
 from dateutil.relativedelta import relativedelta
 
 from models import dev_db
-import logging
 
 from requests.auth import HTTPBasicAuth
 from requests.auth import HTTPDigestAuth
 from requests.auth import HTTPProxyAuth
 
 from fake_useragent import UserAgent
-import random
 
 from peewee import (
     CharField,
@@ -34,8 +35,8 @@ from peewee import (
 
 
 db = quick_alert_db = MySQLDatabase(
-    'quickalert',
-    user='quickalert',
+    'rec_quickalert',
+    user='rec_quickalert',
     password='quickalert',
     host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
     port=3306
@@ -82,7 +83,8 @@ class AdSeLoger(Model):
     class Meta:
         database = db
         db_table = 't_sel_ads_buffer_in'
-        primary_key = False """
+        primary_key = False
+"""
 
 
 ###################################################################3
@@ -161,10 +163,8 @@ header = {
     'Connection': 'Keep-Alive',
     'Accept-Encoding': 'gzip'
 }
-#########################################################################################################################
-#########################################################################################################################
-#########################################################################################################################
-#########################################################################################################################
+
+
 def init_models():
     for name, typ in AD_REQUIRED_FIELDS.items():
         AdPap._meta.add_field(name, typ)
@@ -172,11 +172,9 @@ def init_models():
     AdPap.create_table(safe=True)
 
     #AdPapConf.create_table(safe=True)
-#########################################################################################################################
-#########################################################################################################################
-#########################################################################################################################
-#########################################################################################################################
-def search(parameters,threa):
+
+
+def search(parameters, thread):
 
     v_timer = 5
     v_wait = 0
@@ -240,11 +238,9 @@ def search(parameters,threa):
             params += "&recherche[geo][ids][]=%s" % code
 
     #print (parameters)
-####################################################################
 
     #print("Retrieve Ads")
     for i in range(0,10):
- ###########################################################""
         #proxies = { 'https' : "https://139.28.219.246:8080" }
         #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=60,proxies=proxies,auth=HTTPBasicAuth('loic.montagnac@gmail.com', 'FRbY3wZPobCmAbIEaBzW'))
 
@@ -261,9 +257,8 @@ def search(parameters,threa):
         s.proxies = proxies
         s.auth = auth        # Set authorization parameters globally
 
-        ext_ip = s.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=120) """
-
-###########################################################""
+        ext_ip = s.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=120)
+        """
         try:
             request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=10)
             #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
@@ -319,7 +314,6 @@ def search(parameters,threa):
 
         else:
             return
-####################################################################
 
         #photos = list()
         #if ad.get("nb_photos") > 0:
@@ -391,8 +385,6 @@ def search(parameters,threa):
     #print("Change PROXY")
     #time.sleep(20)
 
-#########################################################################################################################
-
 def place_search(zipcode):
     """Retourne l'identifiant PAP pour un code postal donné"""
     payload = {
@@ -433,8 +425,6 @@ def place_search(zipcode):
 
         else:
             break
-
-#########################################################################################################################
 
 def get_expiration():
     """Vérifie la validité des annonces pap"""
