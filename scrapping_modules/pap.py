@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from dateutil.relativedelta import relativedelta
 import requests
 import time
 from urllib.parse import unquote, urlencode
 from datetime import datetime
 import sys
+
+from dateutil.relativedelta import relativedelta
+
 from models import dev_db
 import logging
 
@@ -435,7 +437,7 @@ def place_search(zipcode):
 #########################################################################################################################
 
 def get_expiration():
-    """Vérifie la validité des annonces seloger"""
+    """Vérifie la validité des annonces pap"""
 
     v_delay = 5
     v_wait_e = 0

@@ -175,14 +175,6 @@ class BaseAds():
             'description'	: None,
             'permalink'	: None,
             'features'	: None
-
-
-
-
-
-
-
-
         }
         return ret
 
@@ -253,10 +245,10 @@ class SeLogerAds(BaseAds):
             'kty': 'RSA',
         }
         encoded_jwt = jwt_.encode(
-                payload=params,
-                key = OctetJWK(bytes(JWT_CONST, 'utf-8')),
-                alg = 'HS256',
-                optional_headers = {"typ":"JWT","alg":"HS256"})
+            payload=params,
+            key = OctetJWK(bytes(JWT_CONST, 'utf-8')),
+            alg = 'HS256',
+            optional_headers = {"typ":"JWT","alg":"HS256"})
         return encoded_jwt
 
     # Get the authenticated token.

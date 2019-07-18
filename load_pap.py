@@ -1,61 +1,50 @@
 #!/usr/bin/env python3
-#############################################################
-# IMPORT FUNCTIONS
-##############################################################
+
 import os
-import json
 import logging
-from scrapping_modules import sel
-from scrapping_modules import lbc
-from scrapping_modules import pap
 import threading
+import json
 
-#############################################################
-# PARAMETERS
-##############################################################
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-script_path = os.path.abspath(__file__)
-os.chdir(os.path.dirname(script_path))
-script = pap
+from scrapping_modules import pap as scrapping_module
 
-#############################################################
-# DEFINE FUNCTION FOR THE THREAD
-##############################################################
-def ThreadScript(threadid):
-   for a in range(max_launch_per_tread):
-        with open("data/pap_model.json", encoding='utf-8') as parameters_data:
-            parameters = json.load(parameters_data)
-            script.init_models()
-            if script.search(parameters,threadid) == -1 :
+
+def scrap(tasker_id, runs_count):
+    for _ in range(runs_count):
+        with open("data/pap_model.json", encoding='utf-8') as json_config:
+            parameters = json.load(json_config)
+            if scrapping_module.search(parameters, tasker_id) == -1:
                 break
 
-#############################################################
-# CLEAN THREAD_ID
-##############################################################
-script.AdBatchTable.update(thread=0).where(id == 'pap%').execute()
 
-#############################################################
-# MULTI THREADING
-##############################################################
-nb_thread = 1
-max_batch = 13000
-max_launch_per_tread = round(max_batch/nb_thread)
-print("nb_thread : {}      max_batch : {}      max_per_thread : {}".format(nb_thread,max_batch,max_launch_per_tread))
-thread_list = []
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    script_path = os.path.abspath(__file__)
+    os.chdir(os.path.dirname(script_path))
 
-for i in range(nb_thread):
-    #print(i)
-    thread = threading.Thread(target=ThreadScript, args=(i,))
-    thread_list.append(thread)
-    thread.start()
-    #print(i)
+    scrapping_module.AdBatchTable.update(thread=0).where(id == 'pap%').execute()
 
-for thread in thread_list:
-    thread.join()
-#############################################################
-# CLEAN THREAD_ID
-##############################################################
-script.AdBatchTable.update( thread=0).where(id == 'pap%').execute()
+    tasker_count = 1
+    total_runs = 13000
+    runs_per_tasker = round(total_runs/tasker_count)
 
-print ("Thread has finished")
-##############################################################
+    print("tasker_count [{}] runs_per_tasker [{}]".format(
+        tasker_count,
+        runs_per_tasker
+    ))
+
+    scrapping_module.init_models()
+
+    thread_list = [threading.Thread(target=scrap, args=(id, runs_per_tasker)) for id in range(tasker_count)]
+
+    # start all threads
+    for thread in thread_list:
+        thread.start()
+
+    # wait all threads to finish
+    for thread in thread_list:
+        thread.join()
+
+    # Lock task infos
+    scrapping_module.AdBatchTable.update(thread=0).where(id == 'pap%').execute()
+
+    print("All tasks done.")
