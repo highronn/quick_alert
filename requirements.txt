@@ -3,5 +3,6 @@ lxml==4.3.2
 requests==2.21.0
 beautifulsoup4==4.7.1
 PyMySQL==0.9.3
+ujson==1.35
 py-trello==0.6.1
 fake-useragent==0.1.11

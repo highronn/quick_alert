@@ -3,7 +3,7 @@
 import os
 import logging
 import threading
-import json
+import ujson
 
 from scrapping_modules import pap as scrapping_module
 
@@ -11,7 +11,7 @@ from scrapping_modules import pap as scrapping_module
 def scrap(tasker_id, runs_count):
     for _ in range(runs_count):
         with open("data/pap_model.json", encoding='utf-8') as json_config:
-            parameters = json.load(json_config)
+            parameters = ujson.loads(json_config)
             if scrapping_module.search(parameters, tasker_id) == -1:
                 break
 
