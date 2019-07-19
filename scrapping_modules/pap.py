@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import logging
 import requests
 import time
@@ -33,8 +34,8 @@ from peewee import (
     MySQLDatabase
 )
 
-
-db = quick_alert_db = MySQLDatabase(
+is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+db = dev_db if is_dev_db else MySQLDatabase(
     'rec_quickalert',
     user='rec_quickalert',
     password='quickalert',
@@ -42,10 +43,7 @@ db = quick_alert_db = MySQLDatabase(
     port=3306
 )
 
-start_date_script = (datetime.now()+ relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
-
-#db = dev_db
-db = quick_alert_db
+start_date_script = (datetime.now() + relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
 
 AD_REQUIRED_FIELDS = {
     "id": IntegerField(null=False),
