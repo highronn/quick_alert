@@ -75,41 +75,11 @@ AD_REQUIRED_FIELDS = {
 }
 
 
-
-"""
-class AdSeLoger(Model):
-    class Meta:
-        database = db
-        db_table = 't_sel_ads_buffer_in'
-        primary_key = False
-"""
-
-
-###################################################################3
 class AdPap(Model):
     class Meta:
         database = db
         db_table = 't_pap_ads_buffer_in'
-"""
-class AdBatchTable(Model):
-    class Meta:
-        database = db
-        db_table = 't_batch_info_2'
 
-    id = CharField(unique=True, primary_key=True)
-    is_actif = IntegerField(null=False)
-    limit_date = DateTimeField(null=False)
-    thread = IntegerField(null=True)
-
-class AdBatchView(Model):
-    class Meta:
-        database = db
-        db_table = 'v_batch_run_pap'
-
-
-    id = CharField(unique=True, primary_key=True)
-    cp = DateTimeField(null=False)
-    ad_type = CharField(null=False)   """
 
 class AdBatchTable(Model):
     class Meta:
@@ -124,6 +94,7 @@ class AdBatchTable(Model):
     cp = CharField(null=False)
     thread = IntegerField(null=False)
 
+
 class AdBatchView(Model):
     class Meta:
         database = db
@@ -132,6 +103,7 @@ class AdBatchView(Model):
     id = CharField(unique=True, primary_key=True)
     cp = CharField(null=False)
     ad_type = CharField(null=False)
+
 
 class v_check_validity(Model):
     class Meta:
@@ -143,6 +115,7 @@ class v_check_validity(Model):
     check_expiration = IntegerField(null=False)
     url = TextField(null=False)
 
+
 class t_peewee(Model):
     class Meta:
         database = db
@@ -153,11 +126,10 @@ class t_peewee(Model):
     check_expiration = IntegerField(null=False)
     url = TextField(null=False)
 
-ua = UserAgent()
 
 header = {
     'X-Device-Gsf': '36049adaf18ade77',
-    'User-Agent': ua.random,
+    'User-Agent': UserAgent().random,
     'Connection': 'Keep-Alive',
     'Accept-Encoding': 'gzip'
 }
@@ -169,22 +141,14 @@ def init_models():
 
     AdPap.create_table(safe=True)
 
-    #AdPapConf.create_table(safe=True)
-
 
 def search(parameters, thread):
-
     v_timer = 5
     v_wait = 0
     wait_time = 1.5
-    start_date_script = (datetime.now()+ relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
+    start_date_script = (datetime.now() + relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
 
-    """ parameters['config_id'] = AdBatchView.get().id
-    parameters["cities"][0][1] = AdBatchView.get().cp
-    parameters["pap"]["recherche[produit]"] = AdBatchView.get().ad_type
-    config_id = parameters['config_id'] """
-
-    try :
+    try:
         parameters['config_id'] = AdBatchView.get().id
         parameters["cities"][0][1] = AdBatchView.get().cp
         parameters["pap"]["recherche[produit]"] = AdBatchView.get().ad_type
@@ -203,11 +167,10 @@ def search(parameters, thread):
         print("{} - no config found for. no limit date will be used".format(config_id))
         limit_date = None
 
-
-
     # Préparation des paramètres de la requête
     payload = {}
-    """ payload = {
+    """
+    payload = {
         'recherche[prix][min]': parameters['price'][0],  # Loyer min
         'recherche[prix][max]': parameters['price'][1],  # Loyer max
         'recherche[surface][min]': parameters['surface'][0],  # Surface min
@@ -216,54 +179,29 @@ def search(parameters, thread):
         'recherche[nb_chambres][min]': parameters['bedrooms'][0],  # Chambres min
         #'size': 200,
         #'page': 1
-    } """
+    }
+    """
     # Insertion des paramètres propres à PAP
     payload.update(parameters['pap'])
     params = urlencode(payload)
 
     # Ajout des villes
     for city in parameters['cities']:
-
         code = place_search(city[1])
         #print("&recherche[geo][ids][]=%s" % code)
         #print(code)
         if code == 0:
-            AdBatchTable.update(is_actif = -1).where(AdBatchTable.id == config_id).execute()
+            AdBatchTable.update(is_actif=-1).where(AdBatchTable.id == config_id).execute()
             print("     Batch deactivated")
             return
-
-        else :
+        else:
             params += "&recherche[geo][ids][]=%s" % code
 
-    #print (parameters)
-
-    #print("Retrieve Ads")
-    for i in range(0,10):
-        #proxies = { 'https' : "https://139.28.219.246:8080" }
-        #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=60,proxies=proxies,auth=HTTPBasicAuth('loic.montagnac@gmail.com', 'FRbY3wZPobCmAbIEaBzW'))
-
-        #proxies = { 'https' : "https://loic.montagnac@gmail.com:FRbY3wZPobCmAbIEaBzW@139.28.219.246:8080" }
-        #request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=60,proxies=proxies)
-
-        """
-        s = requests.Session()
-        proxies = {
-        "http": "http://fr373.nordvpn.com:8080",
-        "https": "https://fr373.nordvpn.com:8080"
-        }
-        auth = HTTPProxyAuth("loic.montagnac@gmail.com", "FRbY3wZPobCmAbIEaBzW")
-        s.proxies = proxies
-        s.auth = auth        # Set authorization parameters globally
-
-        ext_ip = s.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=120)
-        """
+    for i in range(0, 10):
         try:
             request = requests.get("https://ws.pap.fr/immobilier/annonces", params=unquote(params), headers=header, timeout=10)
-            #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
-            print(request.url)
             data = request.json()
             time.sleep(wait_time)
-            #print(data)
         except requests.exceptions.ConnectionError as r:
             r.status_code = "      {} - Connection refused"
             print ("      requests.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
@@ -284,26 +222,23 @@ def search(parameters, thread):
     with open("output.json", "w+") as output:
         output.write(str(data))
 
-    #print("Retrieve Ad details")
     for it, ad in enumerate(data['_embedded'].get('annonce', [])):
         ad_id = ad.get('id')
 
-        for i in range(0,10):
+        for i in range(0, 10):
             try:
                 _request = requests.get("https://ws.pap.fr/immobilier/annonces/{}".format(ad_id), headers=header, timeout=3)
-                #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), request.url))
                 _data = _request.json()
                 time.sleep(wait_time)
             except requests.exceptions.ConnectionError as r:
                 r.status_code = "Connection refused"
-                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                print("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
                 v_timer += v_wait
                 continue
-
             except requests.exceptions.ReadTimeout as r:
                 r.status_code = "Connection Timeout"
-                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                print("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
                 v_timer += v_wait
                 continue
@@ -351,14 +286,15 @@ def search(parameters, thread):
 
         date_classement = ad_fields["date_classement"].strftime('%Y-%m-%d %H:%M:%S')
 
-        #print(date_classement)
-        #print(limit_date)
-        if limit_date and date_classement <= limit_date :
+        if limit_date and date_classement <= limit_date:
             print("      limit date reached")
             break
 
-        print("      {} Import ADS : {} - {} - {} sec ...".format(it, ad_id, date_classement, wait_time))
-        for i in range(0,2):
+        print("      {} Import ADS : {} - {} - {} sec ...".format(
+            it, ad_id, date_classement, wait_time
+        ))
+
+        for i in range(0, 2):
             try:
                 #db.connect
                 ad_model = AdPap.create(**ad_fields)
@@ -367,21 +303,19 @@ def search(parameters, thread):
             except IntegrityError as error:
                 logging.info("      Error: " + str(error))
                 break
-            except:
-                #logging.info("ERROR: Database error connection")
+            except Exception:
                 time.sleep(v_timer)
                 v_timer += v_wait
                 db.close
                 init_models()
-                print ("      Database error - waiting : {} sec(s)".format(v_timer))
+                print("      Database error - waiting : {} sec(s)".format(v_timer))
                 return
             else:
                 break
 
-    AdBatchTable.update( limit_date=start_date_script).where(AdBatchTable.id == config_id).execute()
+    AdBatchTable.update(limit_date=start_date_script).where(AdBatchTable.id == config_id).execute()
     print("      {} - new limit date to '{}'".format(config_id, start_date_script))
-    #print("Change PROXY")
-    #time.sleep(20)
+
 
 def place_search(zipcode):
     """Retourne l'identifiant PAP pour un code postal donné"""
@@ -393,12 +327,9 @@ def place_search(zipcode):
     v_timer = 5
     v_wait = 0
 
-    #print("Retrieve Ids of postal code : {}".format(zipcode))
-
-    for i in range(0,5):
+    for i in range(0, 5):
         try:
             request = requests.get("https://ws.pap.fr/gis/places", params=payload, headers=header, timeout=3)
-            #print("{} - URI = {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),request.url))
             json = request.json()['_embedded']['place'][0]['id']
             time.sleep(1.5)
             return json
@@ -419,8 +350,6 @@ def place_search(zipcode):
             #time.sleep(v_timer)
             #v_timer += v_wait
             return 0
-
-
         else:
             break
 
@@ -495,5 +424,3 @@ def get_expiration():
                 v_wait_e += v_delay
                 print ("      {} - Try again - Waiting : {} sec(s)".format(r.status_code,v_wait_e))
                 continue
-
-
