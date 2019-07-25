@@ -289,21 +289,21 @@ class SeLogerAds(BaseAds):
                 data = r.json()
             except requests.exceptions.ConnectionError as r:
                 r.status_code = "Connection refused"
-                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                print ("      get_ad_details - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
                 v_timer += v_wait
                 continue
 
             except requests.exceptions.ReadTimeout as r:
                 r.status_code = "Connection Timeout"
-                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                print ("      get_ad_details - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
                 v_timer += v_wait
                 continue
             except:
                 print("     {}".format(r.status_code))
                 print("     {}".format(r.text))
-                print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                print ("      get_ad_details - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                 time.sleep(v_timer)
                 v_timer += v_wait
                 continue
@@ -403,7 +403,21 @@ class SeLogerAds(BaseAds):
         }
 
         r = requests.post(LOCATION_URL, data=json.dumps(LOCATION_PAYLOAD), headers=self.headers,timeout=30)
-        return r.json()[0]['id']
+
+        y = 1
+        result = []
+        _itemCount = len(r.json())-1
+        print(y)
+        print(_itemCount)
+        if _itemCount == 0 :
+            result.append(r.json()[0]['id'])
+        else :
+            while y <= _itemCount :
+                result.append(r.json()[y]['id'])
+                y += 1
+        print(result)
+
+        return result
 
     def search(self, cp, min_surf, max_price, ad_type, nb_room_min,config_id, raw=True):
         """Recover the ads matching a given search
@@ -427,7 +441,7 @@ class SeLogerAds(BaseAds):
             db_insee_code = AdBatchTable.get(AdBatchTable.id == config_id).ad_code
             __cp=_cp[0]
 
-            if __cp != db_insee_code :
+            if str(__cp) != str(db_insee_code) :
                 print("     Check CP Update     {}/{} for {}".format(db_insee_code,__cp,db_cp))
                 AdBatchTable.update( ad_code=__cp, is_actif=3).where(AdBatchTable.id == config_id).execute()
         except :
@@ -438,7 +452,6 @@ class SeLogerAds(BaseAds):
         v_timer = 5
         v_wait = 5
         wait_time = 1.5
-        _pageCount = 10
         ret = {
                 'id': [],
                 'source': self.website
@@ -451,11 +464,11 @@ class SeLogerAds(BaseAds):
             #print(_pageCount)
             SEARCH_PAYLOAD = {
                 "pageIndex": y,
-                "pageSize": 100 ,
+                "pageSize": 200 ,
                 "query": {
                     #"bedrooms": [],
                     "includeNewConstructions": True,
-                    "inseeCodes": [__cp],
+                    "inseeCodes": __cp,
                     #"maximumPrice": max_price,
                     #"minimumLivingArea": min_surf,
                     #"realtyTypes": 3,
@@ -506,14 +519,14 @@ class SeLogerAds(BaseAds):
                         break
                 except requests.exceptions.ConnectionError as r:
                     r.status_code = "Connection refused"
-                    print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                    print ("      search - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                     time.sleep(v_timer)
                     v_timer += v_wait
                     continue
 
                 except requests.exceptions.ReadTimeout as r:
                     r.status_code = "Connection Timeout"
-                    print ("      ad.get - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
+                    print ("      search - {} - Waiting : {} sec(s)".format(r.status_code,v_timer))
                     time.sleep(v_timer)
                     v_timer += v_wait
                     continue
@@ -637,7 +650,7 @@ def search(params,ThreadId):
     ####################################################################
     ##  PARAMETRAGE DU JSON & URL
     ####################################################################
-    BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
+    #BatchTable = AdBatchTable.get(AdBatchTable.id == config_id)
 
     params['config_id'] = config_id
     params["sel"]["cp"] = AdBatchTable.get(AdBatchTable.id == config_id).cp
@@ -724,9 +737,9 @@ def search(params,ThreadId):
     #items = r.get("raw", {}).get("items")
     id_count = len(ids)
     #item_count = len(items)
-    print(ids)
+    #print(ids)
     #print(items)
-    print(id_count)
+    #print(id_count)
     #print(item_count)
     #assert(id_count == item_count)
 
@@ -821,5 +834,6 @@ def search(params,ThreadId):
     ##################################################""
     # UPDATE LIMIT_DATE & THREAD = 0
     ##################################################""
-    AdBatchTable.update( limit_date=start_date_script, thread=0, is_actif=5).where(AdBatchTable.id == config_id).execute()
+    AdBatchTable.update( limit_date=start_date_script, thread=0).where(AdBatchTable.id == config_id).execute()
+    #AdBatchTable.update( limit_date=start_date_script, thread=0""" , is_actif=5 """).where(AdBatchTable.id == config_id).execute()
     print("      {} - new limit date to '{}'".format(config_id, start_date_script))
