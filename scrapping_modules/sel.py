@@ -175,6 +175,14 @@ class BaseAds():
             'description'	: None,
             'permalink'	: None,
             'features'	: None
+
+
+
+
+
+
+
+
         }
         return ret
 
@@ -245,10 +253,10 @@ class SeLogerAds(BaseAds):
             'kty': 'RSA',
         }
         encoded_jwt = jwt_.encode(
-            payload=params,
-            key = OctetJWK(bytes(JWT_CONST, 'utf-8')),
-            alg = 'HS256',
-            optional_headers = {"typ":"JWT","alg":"HS256"})
+                payload=params,
+                key = OctetJWK(bytes(JWT_CONST, 'utf-8')),
+                alg = 'HS256',
+                optional_headers = {"typ":"JWT","alg":"HS256"})
         return encoded_jwt
 
     # Get the authenticated token.
@@ -407,15 +415,15 @@ class SeLogerAds(BaseAds):
         y = 1
         result = []
         _itemCount = len(r.json())-1
-        print(y)
-        print(_itemCount)
+        #print(y)
+        #print(_itemCount)
         if _itemCount == 0 :
             result.append(r.json()[0]['id'])
         else :
             while y <= _itemCount :
                 result.append(r.json()[y]['id'])
                 y += 1
-        print(result)
+        #print(result)
 
         return result
 
@@ -442,8 +450,8 @@ class SeLogerAds(BaseAds):
             __cp=_cp[0]
 
             if str(__cp) != str(db_insee_code) :
-                print("     Check CP Update     {}/{} for {}".format(db_insee_code,__cp,db_cp))
-                AdBatchTable.update( ad_code=__cp, is_actif=3).where(AdBatchTable.id == config_id).execute()
+                #print("     Check CP Update     {}/{} for {}".format(db_insee_code,__cp,db_cp))
+                AdBatchTable.update( ad_code=__cp).where(AdBatchTable.id == config_id).execute()
         except :
             return -2
         #######################################################""
@@ -834,6 +842,6 @@ def search(params,ThreadId):
     ##################################################""
     # UPDATE LIMIT_DATE & THREAD = 0
     ##################################################""
-    AdBatchTable.update( limit_date=start_date_script, thread=0).where(AdBatchTable.id == config_id).execute()
+    AdBatchTable.update( limit_date=start_date_script, thread=999).where(AdBatchTable.id == config_id).execute()
     #AdBatchTable.update( limit_date=start_date_script, thread=0""" , is_actif=5 """).where(AdBatchTable.id == config_id).execute()
     print("      {} - new limit date to '{}'".format(config_id, start_date_script))

@@ -32,12 +32,12 @@ def ThreadScript(threadid):
 #############################################################
 # CLEAN THREAD_ID
 ##############################################################
-script.AdBatchTable.update( thread=0).where(id == 'sel%').execute()
+script.AdBatchTable.update(thread=0).where(script.AdBatchTable.id == 'sel%' and script.AdBatchTable.thread != 999).execute()
 
 #############################################################
 # MULTI THREADING
 ##############################################################
-nb_thread = 4
+nb_thread = 60
 max_batch = 12000
 max_launch_per_tread = round(max_batch/nb_thread)
 print("nb_thread : {}      max_batch : {}      max_per_thread : {}".format(nb_thread,max_batch,max_launch_per_tread))
@@ -55,7 +55,7 @@ for thread in thread_list:
 #############################################################
 # CLEAN THREAD_ID
 ##############################################################
-script.AdBatchTable.update( thread=0).where(id == 'sel%').execute()
+script.AdBatchTable.update( thread=0).where(script.AdBatchTable.id == 'sel%' and script.AdBatchTable.thread != 999 ).execute()
 
 print ("Thread has finished")
 ##############################################################
