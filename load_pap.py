@@ -34,7 +34,10 @@ if __name__ == "__main__":
 
     scrapping_module.init_models()
 
-    thread_list = [threading.Thread(target=scrap, args=(id, runs_per_tasker)) for id in range(tasker_count)]
+    thread_list = [
+        threading.Thread(target=scrap, args=(id, runs_per_tasker))
+        for id in range(tasker_count)
+    ]
 
     # start all threads
     for thread in thread_list:
@@ -45,6 +48,9 @@ if __name__ == "__main__":
         thread.join()
 
     # Lock task infos
-    scrapping_module.AdBatchTable.update(thread=0).where(id == 'pap%').execute()
+    scrapping_module.AdBatchTable.update(thread=0).where(
+        scrapping_module.AdBatchTable.id == 'pap%'
+        and scrapping_module.AdBatchTable.thread != 999
+    ).execute()
 
     print("All tasks done.")
