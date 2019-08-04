@@ -81,16 +81,8 @@ AD_REQUIRED_FIELDS = {
     'body': TextField(null=True, default=None)
 }
 
-""" is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+is_dev_db = (int(os.environ.get("QUICKALERT_DEV", 0)) == 1)
 db = dev_db if is_dev_db else MySQLDatabase(
-    'quickalert',
-    user='quickalert',
-    password='quickalert',
-    host='myquickalertdbinstance.cqlkfxu7awoj.eu-west-3.rds.amazonaws.com',
-    port=3306
-) """
-
-db = quick_alert_db = MySQLDatabase(
     'quickalert',
     user='quickalert',
     password='quickalert',

@@ -29,7 +29,7 @@ from peewee import (
 
 from jwt.jwk import OctetJWK
 
-is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+is_dev_db = (int(os.environ.get("QUICKALERT_DEV", 0)) == 1)
 db = MySQLDatabase(
     'quickalert',
     user='quickalert',

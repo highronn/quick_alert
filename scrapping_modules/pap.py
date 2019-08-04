@@ -34,7 +34,7 @@ from peewee import (
     MySQLDatabase
 )
 
-is_dev_db = (os.environ.get("QUICKALERT_DEV", "0") != 0)
+is_dev_db = (int(os.environ.get("QUICKALERT_DEV", 0)) == 1)
 db = dev_db if is_dev_db else MySQLDatabase(
     'rec_quickalert',
     user='rec_quickalert',
