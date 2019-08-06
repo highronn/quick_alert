@@ -145,7 +145,7 @@ def init_models():
 def search(parameters, thread):
     v_timer = 5
     v_wait = 0
-    wait_time = 1.5
+    wait_time = 0.1
     start_date_script = (datetime.now() + relativedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:00')
 
     try:
